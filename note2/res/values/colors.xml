@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <color name="windowBackground">#123456</color>
+    <color name="transparent">#00000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="white2">#88FFFFFF</color>
+    <color name="white3">#44FFFFFF</color>
+    <color name="brown">#A67D3D</color>
+    <color name="brown2">#88A67D3D</color>
+    <color name="brown3">#44A67D3D</color>
+    <color name="gray3">#44AAAAAA</color>
+    <color name="gray">#FFAAAAAA</color>
+    <color name="yellow3">#44FFFF00</color>
+    
+    <color name="text_color">#b35c44</color>
+    <color name="holo_blue">#FF33E5B5</color>
+  
+</resources>

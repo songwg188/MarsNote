@@ -1,0 +1,23 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/add_note_action"
+        android:orderInCategory="100"
+        android:showAsAction="always|withText"
+        android:title="@string/title_activity_add_note"
+        android:icon="@drawable/titlebar_add_note_btn"/>
+    
+    <item
+        android:id="@+id/batch_delete"
+        android:orderInCategory="100"
+        android:showAsAction="always|withText"
+        android:title="@string/menu_delete_note"
+        android:icon="@drawable/titlebar_batch_delete_btn"/>
+    
+    <item
+        android:id="@+id/batch_select"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:title="@string/batch_select_title"/>
+
+</menu>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="week_titles">       
+        <item>MON</item>
+        <item>TUE</item>
+        <item>WED</item>
+        <item>THU</item>
+        <item>FRI</item>
+        <item>SAT</item>
+         <item>SUN</item>
+    </string-array>
+   	<string-array name="date_title">       
+        <item>-</item>
+        <item>-</item>
+        <item>-</item>
+    </string-array>
+    <string-array name="time_title">       
+        <item>:</item>
+        <item>:</item>
+        <item>:</item>
+    </string-array>
+    <string-array name="settings_title">
+        <item>Theme</item>   
+        <item>Backup and Restore</item>
+        <item>Export Notes to XML</item>
+        <item>Import XML to Notes</item>
+        <item>Password</item>
+<!--         <item>LOGO Chooser</item> -->
+    </string-array>
+    
+    <string-array name="effects">
+        <item>Standard</item>   
+        <item>Tablet</item>
+        <item>Alpha</item>
+        <item>Rotate</item>
+    </string-array>
+</resources>

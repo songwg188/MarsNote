@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <string name="app_name">Mars Note</string>
+    <string name="widget_name">Mars Note</string>
+    <string name="widget_collections_name">Mars Note(Recent records)</string>
+    <string name="activity_note_title">Note</string>
+    <string name="title_activity_add_note">Add Note</string>
+    <string name="monday">Monday</string>
+    <string name="tuesday">Tuesday</string>
+    <string name="wednesday">Wednesday</string>
+    <string name="thursday">Thursday</string>
+    <string name="friday">Friday</string>
+    <string name="saturday">Saturday</string>
+    <string name="sunday">Sunday</string>
+    <string name="toast_reached_max_text">Reached max length!</string>
+    <string name="menu_delete_note">Delete note</string>
+    <string name="batch_select_title">Batch select</string>
+    <string name="dialog_yes">YES</string>
+    <string name="dialog_no">NO</string>
+    <string name="dialog_batch_delete">Delete selected records?</string>
+    <string name="toast_success">Success!</string>
+    <string name="pull_to_refresh_tap_label">Pull to refresh!</string>
+    <string name="loading_label">Loading..</string>
+    <string name="loadmore_label">Load more</string>
+    <string name="pull_to_refresh_pull_label">Pull to refresh...</string>
+    <string name="pull_to_refresh_refreshing_label">Refreshing...</string>
+    <string name="pull_to_refresh_release_label">Release to refresh...</string>
+    <string name="dialog_executing_message">Please waiting...</string>
+    <string name="title_activity_dian_di_note">DianDiNote</string>
+    <string name="nivigation_recent_title">ListView</string>
+    <string name="nivigation_calendar_title">Calendar</string>
+    <string name="nivigation_settings_title">Settings</string>
+    <string name="add_note_empty_warnning_title">The note is empty,do you want to give up?</string>
+    <string name="context_menu_single_delete_title">Delete this note</string>
+    <string name="add_picture_title">Add a picture</string>
+    <string name="add_note_title_hint">Title:</string>
+    <string name="change_date_title">Change Date</string>
+    <string name="date_time_done">Done</string>
+    <string name="context_menu_delete_img_title">Delete this image.</string>
+    <string name="reach_max_page">Reached max page</string>
+    <string name="empty">No record at the selected day.</string>
+    <string name="toast_cant_add_note">Today\'s records has reached 50.</string>
+    <string name="save_to_db_title">Do you want to save the record?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="add_new_note_title">Do you want to add a new note?</string>
+    <string name="menu_settings_title">Settings</string>
+    <string name="backup_restore_title">Back up and restore</string>
+    <string name="add_new_record_title">Add a new record</string>
+    <string name="add_new_record_title_2">""</string>
+    <string name="backup_date_title">Date : </string>
+    <string name="backup_time_title">Time : </string>
+    <string name="delete_backup_title">Are you sure to delete backup file </string>
+    <string name="restore_backup_title">Are you sure to use backup file <xliff:g id="path">%s</xliff:g> to restore the database？Once restored the database,all the current data will be covered。</string>
+    <string name="backup_listheader_title">Backup Records</string>
+    <string name="theme_settings_title">Themes</string>
+    <string name="theme1_title">Default</string>
+    <string name="theme2_title">Cells</string>
+    <string name="about_us_title">About Us</string>
+    <string name="share_title">Share</string>
+    <string name="choose_xml_title">Choose a xml</string>
+    <string name="overflow_menu_title">More options</string>
+    <string name="search_title">Search</string>
+    <string name="data_refresh_conflict_title">Data conflict with database,refresh again?</string>
+    <string name="choose_logo_title">Use the picture below as Logo?</string>
+    <string name="export_xml_title">Export text document <xliff:g id="path">%s</xliff:g> to path</string>
+    <string name="import_xml_title">Import text document <xliff:g id="path">%s</xliff:g> to database?</string>
+    <string name="import_xml_error_title">Incorrect document!</string>
+    <string name="widget_empty_title">Click to add new note.</string>
+    <string name="widget_add_new_title">Add new note.</string>
+    <string name="widget_relate_to_others_title">Relate to exsited notes.</string>
+    <string name="widget_relate_to_others_dialog_message">Are you sure to relate to selected note?</string>
+    <string name="grid_pager_index">Page <xliff:g id="index">%s</xliff:g> .</string>
+    <string name="theme_dialog_title">Change style to"<xliff:g id="theme_name">%s</xliff:g>"？</string>
+    <string name="six_cells_settings">Effect</string>
+    <string name="title_activity_login_server">LoginServer</string>
+    <string name="title_activity_register">Register</string>
+    <string name="email_format_error">Error email format!</string>
+    
+    <string name="attention_new_pass">Enter new password</string>
+	<string name="attention_new_pass2">Enter again</string>
+	<string name="attention_error1">Not equal</string>
+	<string name="attention_success">success</string>
+	<string name="attention_success2">success</string>
+	<string name="attention_alter_pass">Enter old password</string>
+	<string name="attention_alter_pass2">Enter new password</string>
+	<string name="attention_enter_pass">Enter the password</string>
+	<string name="login_server_username_title">Name</string>
+	<string name="login_server_pwd_title">Password</string>
+	<string name="login_server_show_pwd_title">Show password</string>
+	<string name="login_server_login_title">Login</string>
+	<string name="login_server_register_title">Register</string>
+	
+	<string name="login_server_email_title">Email</string>
+	<string name="login_server_pwd_title2">Enter again:</string>
+	
+	<string name="pwd_not_equal_error">Not equal</string>
+	<string name="pwd_not_correct_error">error input</string>
+	<string name="username_format_error">error input</string>
+	<string name="titlebar_add_note_content"></string>
+	
+	<string name ="popwindow_camera">Take a photo</string>
+	<string name ="popwindow_gallery">Galley</string>
+	<string name ="editor_max_imgs">The max images count is 10</string>
+
+</resources>

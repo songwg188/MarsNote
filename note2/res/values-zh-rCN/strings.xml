@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <string name="app_name">我的笔记</string>
+    <string name="activity_note_title">我的笔记</string>
+    <string name="widget_name">我的便签</string>
+    <string name="widget_collections_name">最近记录</string>
+    <string name="title_activity_add_note">添加笔记</string>
+    <string name="monday">周一</string>
+    <string name="tuesday">周二</string>
+    <string name="wednesday">周三</string>
+    <string name="thursday">周四</string>
+    <string name="friday">周五</string>
+    <string name="saturday">周六</string>
+    <string name="sunday">周日</string>
+    <string name="toast_reached_max_text">达到最大字数！</string>
+    <string name="menu_delete_note">删除日记</string>
+    <string name="batch_select_title">批量删除日记</string>
+    <string name="dialog_yes">确认</string>
+    <string name="dialog_no">取消</string>
+    <string name="dialog_batch_delete">删除选定的笔记吗?</string>
+    <string name="toast_success">成功!</string>
+    <string name="pull_to_refresh_tap_label">下拉刷新!</string>
+    <string name="loading_label">读取中..</string>
+    <string name="loadmore_label">更  早</string>
+    <string name="pull_to_refresh_pull_label">下拉刷新...</string>
+    <string name="pull_to_refresh_refreshing_label">更新中...</string>
+    <string name="pull_to_refresh_release_label">释放刷新...</string>
+    <string name="dialog_executing_message">请等待...</string>
+    <string name="title_activity_dian_di_note">点点笔记</string>
+    <string name="nivigation_recent_title">最近</string>
+    <string name="nivigation_calendar_title">日历</string>
+    <string name="nivigation_settings_title">设置</string>
+    <string name="add_note_empty_warnning_title">放弃编辑吗?</string>
+    <string name="context_menu_single_delete_title">删除这条日记</string>
+    <string name="add_picture_title">添加图片</string>
+    <string name="add_note_title_hint">标题:</string>
+    <string name="change_date_title">修改日期</string>
+    <string name="date_time_done">完成</string>
+    <string name="context_menu_delete_img_title">删除图片</string>
+    <string name="reach_max_page">查询更多请使用日历</string>
+    <string name="empty">没有记录</string>
+    <string name="toast_cant_add_note">一天不能超过50条记录</string>
+    <string name="save_to_db_title">是否保存记录?</string>
+    <string name="yes">是</string>
+    <string name="no">否</string>
+    <string name="add_new_note_title">添加新的记录吗？</string>
+    <string name="menu_settings_title">设置    </string>
+    <string name="backup_restore_title">备份恢复</string>
+    <string name="add_new_record_title">添加新备份</string>
+    <string name="add_new_record_title_2">到路径:</string>
+    <string name="backup_date_title">日期 : </string>
+    <string name="backup_time_title">时间 : </string>
+    <string name="delete_backup_title">确认删除备份文件 </string>
+    <string name="restore_backup_title">确认用备份文件 <xliff:g id="path">%s</xliff:g> 恢复数据库吗？一旦恢复，当前数据库将被覆盖。</string>
+    <string name="backup_listheader_title">备份记录</string>
+    <string name="theme_settings_title">风格</string>
+    <string name="theme1_title">默认</string>
+    <string name="about_us_title">关于作者</string>
+    <string name="share_title">分享</string>
+    <string name="choose_xml_title">选择一个XML文件</string>
+    <string name="overflow_menu_title">更多..</string>
+    <string name="search_title">搜索</string>
+    <string name="data_refresh_conflict_title">当前数据与数据库不同步，是否再刷新？</string>
+    <string name="choose_logo_title">确认使用如下Logo图片吗？</string>
+    <string name="export_xml_title">将要导出文本文件<xliff:g id="path">%s</xliff:g>到路径</string>
+    <string name="import_xml_title">将要导入文本文件 <xliff:g id="path">%s</xliff:g> 到数据库?</string>
+    <string name="import_xml_error_title">不能识别为导出的文件</string>
+    
+    <string name="widget_empty_title">点击新建便签。</string>
+    <string name="widget_add_new_title">新建便签</string>
+	<string name="widget_relate_to_others_title">关联笔记</string>
+	
+	<string name="widget_relate_to_others_dialog_message">关联选中笔记吗?</string>
+	
+	<string name="grid_pager_index"><xliff:g id="index">%s</xliff:g></string>
+	<string name="theme2_title">六宫格</string>
+	<string name="theme_dialog_title">确认更换风格为"<xliff:g id="theme_name">%s</xliff:g>"吗？</string>
+	
+	<string name="six_cells_settings">六宫格切换效果</string>
+	<string name="attention_new_pass">未设置密码，请输入新的密码。</string>
+	<string name="attention_new_pass2">请再输入一次。</string>
+	<string name="attention_error1">密码不一致,请重新输入。</string>
+	<string name="attention_success">设置成功。</string>
+	<string name="attention_success2">验证成功。</string>
+	<string name="attention_alter_pass">已设置密码，若要重新设置请先解除。</string>
+	<string name="attention_alter_pass2">已清除密码，请设置新的密码。</string>
+	<string name="attention_enter_pass">请输入密码解锁。</string>
+	<string name="title_activity_login_server">同步服务器</string>
+	<string name="login_server_username_title">昵&#160;&#160;&#160;&#160;称&#160;&#160;&#160;&#160;:</string>
+	<string name="login_server_pwd_title">密&#160;&#160;&#160;&#160;码&#160;&#160;&#160;&#160;:</string>
+	<string name="login_server_show_pwd_title">显示密码</string>
+	<string name="login_server_login_title">登&#160;&#160;&#160;&#160;陆</string>
+	<string name="login_server_register_title">注&#160;&#160;&#160;&#160;册</string>
+	
+	<string name="login_server_email_title">邮&#160;&#160;&#160;&#160;箱&#160;&#160;&#160;&#160;:</string>
+	<string name="login_server_pwd_title2">确认密码:</string>
+	<string name="title_activity_register">注册新用户</string>
+	
+	<string name="email_format_error">邮箱格式不正确!</string>	
+	<string name="pwd_not_equal_error">密码输入不一致!</string>
+	<string name="pwd_not_correct_error">密码长度不能小于6位或大于20位!</string>
+	<string name="username_format_error">昵称不能为空或超过20位！</string>	
+	<string name="titlebar_add_note_content"></string>
+	
+	<string-array name="jazzy_effects">
+        <item>Standard</item>
+        <item>Tablet</item>
+        <item>CubeIn</item>
+        <item>CubeOut</item>
+        <item>FlipVertical</item>
+        <item>FlipHorizontal</item>
+        <item>Stack</item>
+        <item>ZoomIn</item>
+        <item>ZoomOut</item>
+        <item>RotateUp</item>
+        <item>RotateDown</item>
+        <item>Accordion</item>
+    </string-array>
+    
+	<string name ="popwindow_camera">拍照</string>
+	<string name ="popwindow_gallery">图库</string>
+	
+	<string name ="editor_max_imgs">您只能插入10张图哦</string>
+	
+</resources>

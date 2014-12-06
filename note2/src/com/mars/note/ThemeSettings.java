@@ -1,0 +1,195 @@
+package com.mars.note;
+
+import com.mars.note.R;
+import com.mars.note.utils.PictureHelper;
+import com.mars.note.views.BounceViewPager;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.os.Bundle;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.support.v4.view.ViewPager.OnPageChangeListener;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.Window;
+import android.view.View.OnClickListener;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+public class ThemeSettings extends Activity implements OnClickListener {
+	String TAG = "ThemeSettings";
+	Activity mActivity;
+	BounceViewPager mViewPager;
+	PagerAdapter adpater;
+	View[] themeViews;
+	LayoutInflater inflater;
+
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		
+		getWindow().requestFeature(Window.FEATURE_ACTION_BAR_OVERLAY); //悬浮Actionbar 20141202
+		
+		inflater = (LayoutInflater) this
+				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		mActivity = this;
+		this.getActionBar().setDisplayHomeAsUpEnabled(true);
+		this.getActionBar().setDisplayShowHomeEnabled(false);
+		
+		this.setContentView(R.layout.activity_theme_settings);
+		mViewPager = (BounceViewPager) this.findViewById(R.id.viewpager);
+		mViewPager.setOffscreenPageLimit(3);
+		mViewPager.setSpringBack(true);
+		initThemes();
+		adpater = new MyPagerAdapter();
+		mViewPager.setAdapter(adpater);
+	}
+
+	private void initThemes() {
+		Drawable d1 = this.getResources().getDrawable(R.drawable.theme1_preview);
+		Drawable d2 = this.getResources().getDrawable(R.drawable.theme2_preview);
+		//20141204此处处理图片加边缘，会有内存溢出的风险
+//		Bitmap t1 = PictureHelper.drawableToBitmap(d1);
+//		Bitmap t2 = PictureHelper.drawableToBitmap(d2);
+//		t1 = PictureHelper.addEdge(t1, mActivity, 8);
+//		t2 = PictureHelper.addEdge(t2, mActivity, 8);
+//		d1 = new BitmapDrawable (mActivity.getResources(), t1);
+//		d2 = new BitmapDrawable (mActivity.getResources(), t2);
+		
+		
+		themeViews = new View[2];
+		View defaultThemeView = inflater.inflate(R.layout.view_pager_item, null);
+		ImageView img = (ImageView) defaultThemeView
+				.findViewById(R.id.theme_pic);
+		TextView txt = (TextView) defaultThemeView
+				.findViewById(R.id.theme_description);
+		txt.setText(getString(R.string.theme1_title));
+		img.setBackground(d1);
+		defaultThemeView.setTag(1);
+		defaultThemeView.setOnClickListener(this);
+		View secondThemeView = inflater.inflate(R.layout.view_pager_item, null);
+		ImageView img2 = (ImageView) secondThemeView
+				.findViewById(R.id.theme_pic);
+		TextView txt2 = (TextView) secondThemeView
+				.findViewById(R.id.theme_description);
+		txt2.setText(R.string.theme2_title);
+		img2.setBackground(d2);
+		secondThemeView.setTag(2);
+		secondThemeView.setOnClickListener(this);
+		themeViews[0] = defaultThemeView;
+		themeViews[1] = secondThemeView;
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case android.R.id.home:
+			this.onBackPressed();
+			break;
+		default:
+			break;
+		}
+		return super.onOptionsItemSelected(item);
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		getMenuInflater().inflate(R.menu.theme_settings, menu);
+		return true;
+	}
+
+	private class MyPagerAdapter extends PagerAdapter {
+		@Override
+		public int getCount() {
+			// TODO Auto-generated method stub
+			return themeViews.length;
+		}
+
+		@Override
+		public boolean isViewFromObject(View v, Object o) {
+			// TODO Auto-generated method stub
+			return v == o;
+		}
+
+		@Override
+		public void destroyItem(View v, int position, Object object) {
+			((ViewPager) v).removeView(themeViews[position]);
+		}
+
+		@Override
+		public Object instantiateItem(ViewGroup container, int position) {
+			container.addView(themeViews[position]);
+			return themeViews[position];
+		}
+	}
+
+	@Override
+	public void onClick(View v) {
+		final int id = (Integer) v.getTag();
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		switch (id) {
+		case 1:
+			builder.setMessage(this.getString(R.string.theme_dialog_title,
+					this.getString(R.string.theme1_title)));
+			break;
+		case 2:
+			builder.setMessage(this.getString(R.string.theme_dialog_title,
+					this.getString(R.string.theme2_title)));
+			break;
+		}
+		builder.setPositiveButton(R.string.yes,
+				new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface arg0, int arg1) {
+						switch (id) {
+						case 1:
+							Config.current_theme = 1;
+							Config.recent_needRefresh = true;
+							SharedPreferences pref = getSharedPreferences(
+									"theme", Context.MODE_PRIVATE);
+							android.content.SharedPreferences.Editor editor = pref
+									.edit();
+							editor.putInt("theme_id", 1);
+							editor.commit();
+							finish();
+							break;
+						case 2:
+							Config.current_theme = 2;
+							Config.recent_needRefresh = true;
+							SharedPreferences pref2 = getSharedPreferences(
+									"theme", Context.MODE_PRIVATE);
+							android.content.SharedPreferences.Editor editor2 = pref2
+									.edit();
+							editor2.putInt("theme_id", 2);
+							editor2.commit();
+							finish();
+							break;
+						}
+					}
+				});
+		builder.setNegativeButton(R.string.no, null);
+		builder.show();
+	}
+	
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+	}
+}

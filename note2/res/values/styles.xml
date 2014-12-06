@@ -1,0 +1,65 @@
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Application theme. -->
+    <style name="AppTheme" parent="android:Theme.Holo">
+        <item name="android:windowBackground">@color/transparent</item>
+        <!-- 左上角的返回箭头替换 -->
+        <item name="android:homeAsUpIndicator">@drawable/ic_home_back</item>
+        <item name="android:actionBarStyle">@style/AppTheme.ActionBarStyle</item>
+<!--         <item name="android:actionButtonStyle">@style/APPTheme.ActionButton</item> -->
+        <item name="android:selectableItemBackground">@null</item>
+        <item name="android:windowContentOverlay">@drawable/action_bar_shadow</item>
+    </style>
+    
+
+    <style name="AppTheme.NoActionBar" parent="android:Theme.Holo.NoActionBar">
+        <item name="android:windowBackground">@color/transparent</item>
+    </style>
+
+    <style name="AppTheme.ActionBarStyle" parent="android:Widget.Holo.ActionBar">
+        <!-- 半透明背景，需要开启actionbar悬浮 -->
+        <item name="android:background">@drawable/titlebar_bg</item>
+        <item name="android:height">55dp</item>
+        <item name="android:titleTextStyle">@style/actionbar_title</item>
+        <item name="android:subtitleTextStyle">@style/actionbar_subTitle</item>
+        
+    </style>
+
+    <style name="actionbar_title" parent="android:TextAppearance.Medium">
+        <item name="android:textColor">#666666</item>
+    </style>
+    
+    <style name="actionbar_subTitle" parent="android:TextAppearance.Small">
+        <item name="android:textColor">#666666</item>
+    </style>
+
+    <style name="AppTheme.Configuration_Dialog" parent="android:style/Theme.Holo">
+        <item name="android:windowBackground">@color/transparent</item> <!-- 设置window背景透明，也就是去边框 -->
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowIsTranslucent">true</item>
+    </style>
+
+    <style name="LoginText">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">#000000</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:minHeight">40dp</item>
+    </style>
+
+    <style name="DrawerMenuItem">
+        <item name="android:background">@drawable/drawer_menu_item_bg</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:enabled">true</item>
+        <!-- <item name="android:paddingLeft">5dp</item> -->
+        <!-- <item name="android:paddingRight">5dp</item> -->
+        <item name="android:layout_height">38dp</item>
+        <item name="android:layout_marginLeft">5dp</item>
+        <item name="android:layout_marginRight">5dp</item>
+        <!-- <item name="android:layout_centerHorizontal">true</item> -->
+        <!-- <item name="android:layout_centerVertical">true</item> -->
+
+    </style>
+
+</resources>

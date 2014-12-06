@@ -1,0 +1,161 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg"
+    android:orientation="vertical"
+    tools:context="com.mars.note.Register" >
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:background="@color/transparent"
+        android:visibility="visible" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:background="#AACDB79E" />
+
+    <com.mars.note.views.MarsScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:overScrollMode="never"
+        android:scrollbars="none" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp" >
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="10dp"
+                android:background="@color/transparent"
+                android:visibility="visible" />
+
+            <ImageView
+                android:id="@+id/head_photo"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_gravity="center"
+                android:layout_marginTop="10dp"
+                android:src="@drawable/head_photo" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp" >
+
+                <TextView
+                    style="@style/LoginText"
+                    android:layout_width="100dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/login_server_email_title" />
+
+                <com.mars.note.views.EditTextWithDel
+                    android:id="@+id/email"
+                    style="@style/LoginText"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/edittext_with_del_bg"
+                    android:maxLength="50"
+                    android:padding="5dp"
+                    android:textCursorDrawable="@drawable/text_cursor" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp" >
+
+                <TextView
+                    style="@style/LoginText"
+                    android:layout_width="100dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/login_server_pwd_title" />
+
+                <com.mars.note.views.EditTextWithDel
+                    android:id="@+id/pwd"
+                    style="@style/LoginText"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/edittext_with_del_bg"
+                    android:digits="1234567890qwertyuiopasdfghjklzxcvbnm"
+                    android:inputType="textPassword"
+                    android:maxLength="20"
+                    android:padding="5dp"
+                    android:textCursorDrawable="@drawable/text_cursor" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp" >
+
+                <TextView
+                    style="@style/LoginText"
+                    android:layout_width="100dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/login_server_pwd_title2" />
+
+                <com.mars.note.views.EditTextWithDel
+                    android:id="@+id/pwd2"
+                    style="@style/LoginText"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/edittext_with_del_bg"
+                    android:digits="1234567890qwertyuiopasdfghjklzxcvbnm"
+                    android:inputType="textPassword"
+                    android:maxLength="20"
+                    android:padding="5dp"
+                    android:textCursorDrawable="@drawable/text_cursor" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:layout_marginTop="10dp" >
+
+                <TextView
+                    style="@style/LoginText"
+                    android:layout_width="100dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/login_server_username_title" />
+
+                <com.mars.note.views.EditTextWithDel
+                    android:id="@+id/username"
+                    style="@style/LoginText"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/edittext_with_del_bg"
+                    android:inputType="textPassword"
+                    android:maxLength="50"
+                    android:padding="5dp"
+                    android:textCursorDrawable="@drawable/text_cursor" />
+            </LinearLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:layout_marginTop="10dp" >
+
+                <Button
+                    android:layout_width="200dp"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:layout_margin="10dp"
+                    android:layout_marginRight="10dp"
+                    android:background="@drawable/pop_window_bg"
+                    android:onClick="registerInfo"
+                    android:text="@string/login_server_register_title" />
+            </RelativeLayout>
+        </LinearLayout>
+    </com.mars.note.views.MarsScrollView>
+
+</LinearLayout>

@@ -1,0 +1,120 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg"
+    android:orientation="vertical" >
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:background="@color/transparent"
+        android:visibility="visible" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:background="#AACDB79E" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="20dp"
+        >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <TextView
+                style="@style/LoginText"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="@string/login_server_email_title" />
+
+            <com.mars.note.views.EditTextWithDel
+                android:id="@+id/email"
+                style="@style/LoginText"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/edittext_with_del_bg"
+                android:maxLength="50"
+                android:padding="5dp"
+                android:textCursorDrawable="@drawable/text_cursor" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp" >
+
+            <TextView
+                style="@style/LoginText"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="@string/login_server_pwd_title" />
+
+            <com.mars.note.views.EditTextWithDel
+                android:id="@+id/pwd"
+                style="@style/LoginText"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/edittext_with_del_bg"
+                android:inputType="textPassword"
+                android:maxLength="20"
+                android:padding="5dp"
+                android:textCursorDrawable="@drawable/text_cursor" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/showPwdLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:clickable="true" >
+
+            <CheckBox
+                android:id="@+id/show_pwd"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:button="@drawable/checkbox_btn" />
+
+            <TextView
+                style="@style/LoginText"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:text="@string/login_server_show_pwd_title" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:clickable="true" >
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_weight="1"
+                android:background="@drawable/pop_window_bg"
+                android:onClick="register"
+                android:text="@string/login_server_register_title" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_weight="1"
+                android:background="@drawable/pop_window_bg"
+                android:text="@string/login_server_login_title" />
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

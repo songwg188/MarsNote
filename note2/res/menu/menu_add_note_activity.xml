@@ -1,0 +1,40 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >    
+    
+	<item
+        android:id="@+id/content_title"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:title="@string/titlebar_add_note_content"/>
+	
+	<item
+        android:id="@+id/add_picture"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:title="@string/add_picture_title"/>
+	<item
+        android:id="@+id/over_flow_menus"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:title="@string/overflow_menu_title"/>
+<!-- 	<item -->
+<!--         android:id="@+id/change_date" -->
+<!--         android:icon="@drawable/ic_menu_my_calendar" -->
+<!--         android:orderInCategory="100" -->
+<!--         android:showAsAction="collapseActionView" -->
+<!--         android:title="@string/change_date_title"/> -->
+	
+<!-- 	<item -->
+<!--         android:id="@+id/delete_single" -->
+<!--         android:icon="@drawable/titlebar_batch_delete_btn" -->
+<!--         android:orderInCategory="100" -->
+<!--         android:showAsAction="collapseActionView" -->
+<!--         android:title="@string/menu_delete_note"/> -->
+	
+<!-- 	<item -->
+<!--         android:id="@+id/share_with_others" -->
+<!--         android:icon="@drawable/ic_menu_share" -->
+<!--         android:orderInCategory="100" -->
+<!--         android:showAsAction="collapseActionView" -->
+<!--         android:title="@string/share_title"/> -->
+	
+</menu>

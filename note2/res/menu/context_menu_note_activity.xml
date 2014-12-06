@@ -1,0 +1,4 @@
+<menu  
+  xmlns:android="http://schemas.android.com/apk/res/android">  
+  <item android:id="@+id/delete" android:title="@string/context_menu_single_delete_title"/>  
+</menu>  

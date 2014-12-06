@@ -1,0 +1,57 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/pop_window_bg"
+    android:focusable="false"
+    android:orientation="horizontal"
+    android:paddingLeft="10dp"
+    android:paddingRight="10dp" >
+
+    <!-- <Button -->
+    <!-- android:id="@+id/recent_fragment" -->
+    <!-- android:layout_width="100dp" -->
+    <!-- android:layout_height="40dp" -->
+    <!-- android:background="@drawable/popup_window_btn" -->
+    <!-- android:text="@string/nivigation_recent_title" -->
+    <!-- android:layout_marginTop="3dp"/> -->
+
+    <ImageButton
+        android:id="@+id/note_settings"
+        android:layout_width="100dp"
+        android:layout_height="40dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="3dp"
+        android:background="@null"
+        android:src="@drawable/settings"
+        android:text="@string/menu_settings_title" />
+
+    <ImageButton
+        android:id="@+id/calendar_fragment"
+        android:layout_width="100dp"
+        android:layout_height="40dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="3dp"
+        android:background="@null"
+        android:src="@drawable/calendar"
+        android:text="@string/nivigation_calendar_title" />
+
+    <ImageButton
+        android:id="@+id/search"
+        android:layout_width="100dp"
+        android:layout_height="40dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="3dp"
+        android:background="@null"
+        android:src="@drawable/search"
+        android:text="@string/search_title" />
+
+    <!-- <Button -->
+    <!-- android:id="@+id/about_us" -->
+    <!-- android:layout_width="100dp" -->
+    <!-- android:layout_height="40dp" -->
+    <!-- android:background="@drawable/popup_window_btn" -->
+    <!-- android:text="@string/about_us_title" -->
+    <!-- android:layout_marginTop="3dp"/> -->
+
+</LinearLayout>

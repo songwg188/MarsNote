@@ -1,0 +1,131 @@
+<!-- 20141126 添加抽屉效果 -->
+<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity" >
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
+
+        <com.mars.note.views.JazzyViewPager
+            android:id="@+id/fragment_viewpager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </FrameLayout>
+
+    <!-- 抽屉布局，实际为RelativeLayout的子类，重写了onTouchEvent返回true防止底部内容布局被touch -->
+
+    <com.mars.note.views.DrawerMenu
+        android:id="@+id/left_menu"
+        android:layout_width="240dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start" >
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignParentBottom="true"
+            android:layout_marginTop="55dp"
+            android:background="@drawable/drawer_menu_bg" >
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:orientation="vertical" >
+
+                <LinearLayout
+                    android:id="@+id/search"
+                    style="@style/DrawerMenuItem"
+                    android:layout_width="match_parent"
+                    android:onClick="toChangeFragment" >
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="@string/search_title"
+                        android:textColor="#FFFFFF"
+                        android:textSize="20sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/recent"
+                    style="@style/DrawerMenuItem"
+                    android:layout_width="match_parent"
+                    android:layout_marginTop="8dp"
+                    android:onClick="toChangeFragment" >
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="@string/nivigation_recent_title"
+                        android:textColor="#FFFFFF"
+                        android:textSize="20sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/calendar"
+                    style="@style/DrawerMenuItem"
+                    android:layout_width="match_parent"
+                    android:layout_marginTop="8dp"
+                    android:onClick="toChangeFragment" >
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="@string/nivigation_calendar_title"
+                        android:textColor="#FFFFFF"
+                        android:textSize="20sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/settings"
+                    style="@style/DrawerMenuItem"
+                    android:layout_width="match_parent"
+                    android:layout_marginTop="8dp"
+                    android:onClick="toChangeFragment" >
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="@string/nivigation_settings_title"
+                        android:textColor="#FFFFFF"
+                        android:textSize="20sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true" >
+
+                <ImageButton
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentBottom="true"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@null"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/info"
+					/>
+            </RelativeLayout>
+        </RelativeLayout>
+    </com.mars.note.views.DrawerMenu>
+
+    <!-- <ListView -->
+    <!-- android:id="@+id/drawer" -->
+    <!-- android:layout_width="120dp" -->
+    <!-- android:layout_height="match_parent" -->
+    <!-- android:layout_gravity="start" -->
+    <!-- android:background="#44000000" -->
+    <!-- android:choiceMode="singleChoice"/> -->
+
+</android.support.v4.widget.DrawerLayout>
