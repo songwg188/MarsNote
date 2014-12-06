@@ -1,4 +1,4 @@
 MarsNote
 ========
 
-A personal developed android application.
+Deployed by mars_ma
