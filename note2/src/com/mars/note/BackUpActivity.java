@@ -6,6 +6,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import com.mars.note.R;
+import com.mars.note.api.BackupDoc;
+import com.mars.note.api.BaseActivity;
+import com.mars.note.api.Config;
 import com.mars.note.database.NoteDBField;
 import com.mars.note.database.NoteDataBaseManager;
 import com.mars.note.utils.FileHelper;
@@ -31,7 +34,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class BackUpAndRestore extends Activity {
+public class BackUpActivity extends BaseActivity {
 	String TAG = "BackUpAndRestore";
 	ListView mListView;
 	BaseAdapter mAdapter;
@@ -47,10 +50,6 @@ public class BackUpAndRestore extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		getWindow().requestFeature(Window.FEATURE_ACTION_BAR_OVERLAY); //Ðü¸¡Actionbar 20141202
-		
-		this.getActionBar().setDisplayHomeAsUpEnabled(true);
-		this.getActionBar().setDisplayShowHomeEnabled(false);
 		this.setContentView(R.layout.activity_backup_restore);
 		date_title = this.getResources().getStringArray(R.array.date_title);
 		time_title = this.getResources().getStringArray(R.array.time_title);
@@ -108,7 +107,7 @@ public class BackUpAndRestore extends Activity {
 		LayoutInflater inflater;
 
 		public BackupListAdapter() {
-			inflater = (LayoutInflater) BackUpAndRestore.this
+			inflater = (LayoutInflater) BackUpActivity.this
 					.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		}
 
@@ -146,14 +145,14 @@ public class BackUpAndRestore extends Activity {
 				date.setTime(dateTime);
 				Calendar cal = Calendar.getInstance();
 				cal.setTime(date);
-				dateText = BackUpAndRestore.this
+				dateText = BackUpActivity.this
 						.getString(R.string.backup_date_title)
 						+ (cal.get(Calendar.YEAR))
 						+ date_title[0]
 						+ (cal.get(Calendar.MONTH) + 1)
 						+ date_title[1]
 						+ cal.get(Calendar.DAY_OF_MONTH) + date_title[2];
-				timeText = BackUpAndRestore.this
+				timeText = BackUpActivity.this
 						.getString(R.string.backup_time_title)
 						+ (cal.get(Calendar.HOUR_OF_DAY))
 						+ time_title[0]
@@ -178,8 +177,8 @@ public class BackUpAndRestore extends Activity {
 					final BackupDoc f = mData.get(((Integer) v.getTag())
 							.intValue());
 					AlertDialog.Builder builder = new AlertDialog.Builder(
-							BackUpAndRestore.this);
-					builder.setMessage(BackUpAndRestore.this
+							BackUpActivity.this);
+					builder.setMessage(BackUpActivity.this
 							.getString(R.string.delete_backup_title)
 							+ "\n"
 							+ f.fileName + "?");
@@ -209,25 +208,28 @@ public class BackUpAndRestore extends Activity {
 					final BackupDoc f = mData.get(((Integer) v.getTag())
 							.intValue());
 					AlertDialog.Builder builder = new AlertDialog.Builder(
-							BackUpAndRestore.this);
-					builder.setMessage(BackUpAndRestore.this.getString(
+							BackUpActivity.this);
+					builder.setMessage(BackUpActivity.this.getString(
 							R.string.restore_backup_title, f.fileName));
 					builder.setPositiveButton(R.string.yes,
 							new OnClickListener() {
 								@Override
 								public void onClick(DialogInterface arg0,
 										int arg1) {
-									File db = BackUpAndRestore.this
+									File db = BackUpActivity.this
 											.getDatabasePath(NoteDBField.DBNAME);
 									File backup = new File(f.path);
 									FileHelper.copyFile(backup, db);
+									NoteApplication.closeDB();
+									NoteApplication.openDB();
+									
 									noteDBManager.clearWidgetsRelations();
 									Config.recent_needRefresh = true;
 									Config.search_needRefresh = true;
 									Config.calendar_needRefresh = true;
 									Toast.makeText(
-											BackUpAndRestore.this,
-											BackUpAndRestore.this
+											BackUpActivity.this,
+											BackUpActivity.this
 													.getText(R.string.toast_success),
 											1000).show();
 									noteDBManager.refreshWidgetCollections();

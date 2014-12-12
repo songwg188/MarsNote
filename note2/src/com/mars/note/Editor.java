@@ -1,14 +1,24 @@
 package com.mars.note;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.locks.ReentrantLock;
+
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.app.ActionBar;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.appwidget.AppWidgetManager;
 import android.content.DialogInterface;
@@ -17,6 +27,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.text.Editable;
 import android.text.Selection;
 import android.text.Spannable;
@@ -24,7 +35,6 @@ import android.text.SpannableString;
 import android.text.TextWatcher;
 import android.text.style.ImageSpan;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -32,29 +42,31 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.ViewGroup.LayoutParams;
-import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.PopupWindow;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.mars.note.api.BaseActivity;
+import com.mars.note.api.Config;
+import com.mars.note.api.EditorHelper;
+import com.mars.note.api.ImageSpanInfo;
+import com.mars.note.api.Logg;
 import com.mars.note.database.*;
 import com.mars.note.utils.PictureHelper;
+import com.mars.note.utils.Util;
 import com.mars.note.views.DataAlterDialog;
-import com.mars.note.views.NoteContentEditText;
 
-public class Editor extends Activity implements
+public class Editor extends BaseActivity implements
 		android.view.View.OnClickListener {
 	private Calendar calendar;
 	private long recordTime;
 	private EditText titleText;
-	private EditText contentText; //20141205图文混排去掉底部白线 NoteContentEditText
-	private View imgContainer;
-	private ImageView mImageView;
+	private EditText contentText; // 20141205图文混排去掉底部白线 NoteContentEditText
 	private DisplayMetrics dm = null;
 	private String note_id;
 	private NoteDataBaseManager noteDBManager;
@@ -66,7 +78,7 @@ public class Editor extends Activity implements
 	private static final int REQUEST_CAMERA = 3;
 	private String imagePath, cameraIMGPath;
 	private ActionBar actionBar;
-	private ProgressBar mProgressBar;
+
 	public static final int MAX_CONTENT = 5000;
 	public static final int MAX_TITLE = 50;
 	private TextView contenTitle;
@@ -75,38 +87,56 @@ public class Editor extends Activity implements
 	private PopupWindow overflow_menu_pw, cameraOrGallery_menu_pw;
 	private Button changeDate, deleteSingle, shareWithOthers;
 	private Button camera, gallery;
-	private int imgPadding = 10;
+	private int imgPadding;
 	private int appWidgetId = -1;
 	private boolean isRelatedToWidget = false; // 表示intent来自widget点击
 	private boolean isAddedWidgetRelation = false;
 	private Intent mIntent;
 	private InputMethodManager imm; // 20141127 bug
 									// 点击按钮退出activity，如果输入法显示，退出后没有隐藏
-	private float screenWidth;
+	private int screenWidth, screenHeight;
 	private EditorHelper mEditorHelper;
 	private static final int imgNums = 10;
+	public static final int thread_num = 10;
+
+	private ExecutorService executors;
+	Handler mhandler;
+	private ConcurrentHashMap<String, ImageSpanLoaderStatus> mConcurentMap;
+	private ReentrantLock mLock;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		Log.d("mars", "onCreate");
-		getWindow().requestFeature(Window.FEATURE_ACTION_BAR_OVERLAY); // 悬浮Actionbar
 		imm = (InputMethodManager) getApplicationContext().getSystemService(
 				INPUT_METHOD_SERVICE);
 		noteDBManager = NoteApplication.getDbManager();
+		executors = NoteApplication.getExecutors();
+		if (executors == null) {
+			executors = Executors.newFixedThreadPool(Editor.thread_num);
+			NoteApplication.setExecutors(executors);
+		}
+		mConcurentMap = new ConcurrentHashMap<String, ImageSpanLoaderStatus>();// 保存线程工作状态
+		mLock = new ReentrantLock(true);// 20141212 公平锁
+		mhandler = new Handler();
+
 		setContentView(R.layout.activity_editor);
 		contenTitle = new TextView(this);
 		titleText = (EditText) this.findViewById(R.id.titleText);
 		contentText = (EditText) this.findViewById(R.id.contentText);
-		imgContainer = this.findViewById(R.id.img_container);
-		mImageView = (ImageView) this.findViewById(R.id.note_image);
-		mProgressBar = (ProgressBar) this.findViewById(R.id.loadimg_progress);
 
 		initPopupWindow();
 
 		mIntent = getIntent();
 		appWidgetId = mIntent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
 				-1);
+
+		if (dm == null) {
+			dm = new DisplayMetrics();
+			getWindowManager().getDefaultDisplay().getMetrics(dm);
+		}
+		screenWidth = dm.widthPixels;
+		screenHeight = dm.heightPixels;
+		imgPadding = Util.dpToPx(getResources(), 3);
 
 		if (appWidgetId != -1) { // 此时时从widget进入的
 			validate();// 验证密码
@@ -115,11 +145,6 @@ public class Editor extends Activity implements
 			refresh();
 		}
 
-		if (dm == null) {
-			dm = new DisplayMetrics();
-			getWindowManager().getDefaultDisplay().getMetrics(dm);
-		}
-		screenWidth = dm.widthPixels;
 	}
 
 	private void initPopupWindow() {
@@ -134,8 +159,9 @@ public class Editor extends Activity implements
 		shareWithOthers.setOnClickListener(this);
 		overflow_menu_pw = new PopupWindow(overflow_menu,
 				LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, false);
+		// 如果不设置,popwindow外部不能touch
 		overflow_menu_pw.setBackgroundDrawable(new BitmapDrawable());
-		// if not setBackgroundDrawable ,outside is not touchable
+
 		overflow_menu_pw.setOutsideTouchable(true);
 		overflow_menu_pw.setFocusable(true);
 		overflow_menu_pw.update();
@@ -159,7 +185,7 @@ public class Editor extends Activity implements
 			mNoteRecord = noteDBManager.querySingleRecord(note_id);
 		}
 		if (mNoteRecord != null) {
-			Log.d("mars", "isPastNote ");
+			Logg.D("isPastNote ");
 			isPastNote = true;
 			String WidgetID = noteDBManager.queryWidgetIDByNoteID(String
 					.valueOf(note_id));
@@ -167,9 +193,9 @@ public class Editor extends Activity implements
 				appWidgetId = Integer.parseInt(WidgetID);
 			}
 		} else {
-			Log.d("mars", "notPastNote ");
+			Logg.D("notPastNote ");
 			isPastNote = false;
-			Log.d("mars", "widgetId = " + appWidgetId);
+			Logg.D("widgetId = " + appWidgetId);
 			if (appWidgetId != -1) {
 				isRelatedToWidget = true;
 				note_id = noteDBManager.querySingleRecordIDByWidgetID(String
@@ -180,6 +206,10 @@ public class Editor extends Activity implements
 				}
 			}
 		}
+		if (mNoteRecord != null) {
+			Logg.D("content : " + mNoteRecord.content);
+		}
+
 		isAddFromCalendar = mIntent.getBooleanExtra("add_from_calendar", false);
 
 		/*
@@ -189,7 +219,7 @@ public class Editor extends Activity implements
 		if (mEditorHelper == null) {
 			mEditorHelper = EditorHelper.newInstance();
 		} else {
-			mEditorHelper.clearPaths(); // 清空图片地址集合
+			mEditorHelper.clearImageCache();
 		}
 
 		initActionBar();
@@ -199,7 +229,7 @@ public class Editor extends Activity implements
 	@Override
 	protected void onNewIntent(Intent intent) {
 		super.onNewIntent(intent);
-		Log.d("mars", "onNewIntent");
+		Logg.D("onNewIntent");
 		mIntent = intent;
 		reset();
 
@@ -222,7 +252,7 @@ public class Editor extends Activity implements
 		isAddFromCalendar = false;
 		titleText.setText("");
 		contentText.setText("");
-		clearIMG();
+		// clearIMG();
 
 	}
 
@@ -247,7 +277,6 @@ public class Editor extends Activity implements
 
 	private void initActionBar() {
 		actionBar = this.getActionBar();
-		actionBar.setDisplayHomeAsUpEnabled(true);
 		calendar = Calendar.getInstance();
 		recordTime = calendar.getTimeInMillis();
 
@@ -276,55 +305,37 @@ public class Editor extends Activity implements
 		String subTitle = dayOfWeekText + " " + nowTime;
 		actionBar.setTitle(nowDate);
 		actionBar.setSubtitle(subTitle);
-		actionBar.setDisplayShowHomeEnabled(false);
 	}
 
 	private void initContent() {
-
 		titleText.setTextColor(Color.DKGRAY);
-
 		contentText.setTextColor(Color.DKGRAY);
 
-		mImageView.setOnClickListener(new android.view.View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				Intent intent = new Intent(Intent.ACTION_VIEW);
-				Uri uri = Uri.parse("file://" + imagePath);
-				intent.setDataAndType(uri, "image/*");
-				Editor.this.startActivity(intent);
-			}
-		});
-
 		contenTitle.setTextSize(20);
-		this.registerForContextMenu(mImageView);
-		EditTextWatcher mtextWatcher = new EditTextWatcher(MAX_CONTENT,
-				contentText);
-		contentText.addTextChangedListener(mtextWatcher);
-		if (isPastNote) {
+		contentText.addTextChangedListener(new EditTextWatcher(MAX_CONTENT,
+				contentText));
+
+		if (isPastNote || isAddedWidgetRelation) {
 			titleText.setText(mNoteRecord.title);
+			// 如何解析图片？
+			// 20141211 从数据库获取bytes[]
+
 			contentText.setText(mNoteRecord.content);
-			imagePath = mNoteRecord.imgpath;
-			if (imagePath != null && (!imagePath.equals("null"))
-					&& (!"".equals(imagePath))) {
-				imgContainer.setVisibility(View.VISIBLE);
-				setImageView();
+
+			byte[] data = mNoteRecord.imageSpanInfos;
+			if (data != null) {
+				// bytes[]转换对象
+				Logg.D("bytes length = " + data.length);
+				ArrayList<ImageSpanInfo> imageSpanInfoList = getImageSpanInfoListFromBytes(data);
+				Logg.D("imageSpanInfoList size = " + imageSpanInfoList.size());
+				// 替换所有ImageSpan
+				replaceAllImgs(imageSpanInfoList);
 			} else {
-				imgContainer.setVisibility(View.GONE);
+				// 恢复软件盘
+				// contentText.setInputType(InputType.TYPE_CLASS_TEXT);
 			}
-		}
-		if (isAddedWidgetRelation) {
-			titleText.setText(mNoteRecord.title);
-			contentText.setText(mNoteRecord.content);
+
 			imagePath = mNoteRecord.imgpath;
-			if (imagePath != null && (!imagePath.equals("null"))
-					&& (!"".equals(imagePath))) {
-				imgContainer.setVisibility(View.VISIBLE);
-				setImageView();
-			} else {
-				imgContainer.setVisibility(View.GONE);
-			}
-		} else {
-			// contentText.setText("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 		}
 		contenTitle.setText(contentText.length() + "/" + Editor.MAX_CONTENT);
 		if (contentText.length() == MAX_CONTENT) {
@@ -340,68 +351,6 @@ public class Editor extends Activity implements
 			deleteSingle.setVisibility(View.VISIBLE);
 		}
 
-		//
-	}
-
-	private void setImageView(Bitmap bm) {
-		if (bm != null) {
-			mImageView.setVisibility(View.VISIBLE);
-			mImageView.setImageBitmap(bm);
-		} else {
-			mImageView.setVisibility(View.GONE);
-			imgContainer.setVisibility(View.GONE);
-		}
-	}
-
-	private void setImageView() { // 将图片路径映射到Bitmap，再显示的过程
-		if (imagePath != null && (!imagePath.equals("null"))
-				&& (!"".equals(imagePath))) {
-			// 这里用Single模式加载图片
-			Bitmap bm = mEditorHelper.getImage(imagePath);
-			if (bm == null) {
-				Logg.D("bm == null");
-				new AsyncTask<Object, Object, Object>() {
-
-					Bitmap pic;
-
-					@Override
-					protected void onPreExecute() {
-						Log.d("task", "onPreExecute");
-
-					}
-
-					@Override
-					protected void onProgressUpdate(Object... values) {
-					}
-
-					@Override
-					protected Object doInBackground(Object... params) {
-						pic = PictureHelper.getImageFromPath(imagePath, 700,
-								screenWidth - 100, true, 100, Editor.this,
-								imgPadding, true);
-						return null;
-					}
-
-					@Override
-					protected void onPostExecute(Object result) {
-						mProgressBar.setVisibility(View.GONE);
-						setImageView(pic);
-						insertIntoEditor(pic);
-						
-						// 201401205 图片与地址增加的地方
-						mEditorHelper.addPath(imagePath);
-						mEditorHelper.addImage(imagePath, pic);
-
-						System.gc();
-					}
-				}.execute();
-			}else{
-				Logg.D("bm != null");
-				setImageView(bm);
-				insertIntoEditor(bm);
-			}
-			
-		}
 	}
 
 	@Override
@@ -442,18 +391,6 @@ public class Editor extends Activity implements
 			imm.hideSoftInputFromWindow(titleText.getWindowToken(), 0);
 			onBackPressed();// 20141127
 			break;
-		// case R.id.add_picture:
-		// Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);//
-		// ACTION_OPEN_DOCUMENT
-		// intent.addCategory(Intent.CATEGORY_OPENABLE);
-		// intent.setType("image/*");
-		// if (android.os.Build.VERSION.SDK_INT >=
-		// android.os.Build.VERSION_CODES.KITKAT) {
-		// startActivityForResult(intent, SELECT_PIC_KITKAT);
-		// } else {
-		// startActivityForResult(intent, SELECT_PIC);
-		// }
-		// break;
 		default:
 			break;
 		}
@@ -470,17 +407,17 @@ public class Editor extends Activity implements
 		}
 
 		@Override
-		public void afterTextChanged(Editable arg0) {
+		public void afterTextChanged(Editable editable) {
 		}
 
 		@Override
-		public void beforeTextChanged(CharSequence arg0, int arg1, int arg2,
-				int arg3) {
+		public void beforeTextChanged(CharSequence chars, int start, int count,
+				int after) {
 		}
 
 		@Override
-		public void onTextChanged(CharSequence arg0, int arg1, int arg2,
-				int arg3) {
+		public void onTextChanged(CharSequence s, int start, int before,
+				int count) {
 			Editable editable = editText.getText();
 			int len = editable.length();
 			contenTitle.setText(len + "/" + this.maxLen);
@@ -507,6 +444,174 @@ public class Editor extends Activity implements
 		}
 	}
 
+	/**
+	 * 用EditText已有的ImageSpan替换文本
+	 * 
+	 * @param span
+	 * @param start
+	 *            起始位置
+	 * @param end
+	 *            结束位置
+	 * @param path
+	 *            路径 like <img ... img>
+	 */
+	private void relaceImageSpans(ImageSpan span, int start, int end,
+			String path) {
+		SpannableString ss = new SpannableString(path);
+		ss.setSpan(span, 0, path.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+		Editable et = contentText.getText();
+		et.delete(start, end);
+		et.insert(start, ss);
+		contentText.setSelection(end);
+	}
+
+	/**
+	 * 用Bitmap构造新的ImageSpan
+	 * 
+	 * @param bm
+	 *            imagespan的图片
+	 * @param start
+	 *            开始位置
+	 * @param end
+	 *            结束位置
+	 * @param path
+	 *            路径 like <img ... img>
+	 */
+	private void relaceImageSpans(Drawable drawable, int start, int end,
+			String path) {
+		SpannableString ss = new SpannableString(path);// path is like <img ...
+														// // img>
+		if (drawable == null) {
+			throw new NullPointerException("drawable cant be null");
+		}
+		drawable.setBounds(0, 0, (int) (screenWidth * 0.7), drawable.getIntrinsicHeight());
+		ImageSpan span = new ImageSpan(drawable, ImageSpan.ALIGN_BASELINE);
+		ss.setSpan(span, 0, path.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+		Editable et = contentText.getText();
+		et.delete(start, end);
+		et.insert(start, ss);
+		contentText.setSelection(end);
+	}
+
+	/**
+	 * 将字符串转换为ImageSpan，从数据库中得到ImageSpanInfo
+	 */
+	private void replaceAllImgs(final ArrayList<ImageSpanInfo> spanInfo) {
+		// 从数据库读取List<ImageSpanInfo> spanInfo
+		if (spanInfo == null) {
+			return;
+		}
+		for (final ImageSpanInfo isi : spanInfo) {
+			// 20141211 注意！缓存中的path是绝对地址,isi的path有<img img>在外部
+			final String imgPath = isi.path.substring(5, isi.path.length() - 5);
+			// Logg.D("ImageSpanInfo imgPath " + imgPath);
+
+			// 初始化mConcurentMap中的键值对
+			if (mConcurentMap.get(imgPath) == null)
+				mConcurentMap.put(imgPath, new ImageSpanLoaderStatus());
+
+			/**
+			 * 20141212 Description 如果是同一imgPath,则都用同一个Bitmap资源
+			 * 当进入Editor,第一个加载imgPath,负责读取图片到内存，然后将所有相同imgPath的地发
+			 * 替换为同一Bitmap的ImageSpan 之后所有线程只将图片替换为预置图片，然后结束
+			 * 当图片的工作完成，所有对这一资源的线程直接返回，无须工作，因为第一个线程已经完成了所有工作
+			 */
+			// 此处多线程需要同步
+			Thread thread = new Thread() {
+				@Override
+				public void run() {
+					mLock.lock();// 同时只有一个线程能进入临界区
+					ImageSpanLoaderStatus isls = mConcurentMap.get(imgPath);
+					if (isls.isFinished) {
+						Logg.D("ImageSpanLoader has finished work");
+						return;
+					}
+					Logg.D("ImageSpanLoader hasn't finished work");
+					if (!isls.isWorking) {
+						// 不可能有两个相同imgPath的线程走到这个逻辑
+						isls.isWorking = true;
+						mLock.unlock();
+
+						mhandler.post(new Runnable() {
+							@Override
+							public void run() {
+								// 使用预置图片
+								relaceImageSpans(
+										(getResources()
+												.getDrawable(
+														R.drawable.editor_preload_img)),
+										isi.start, isi.end, isi.path);
+								Logg.D("relaceImageSpans by temp");
+							}
+						});
+
+						final Bitmap pic = PictureHelper.getImageFromPath(
+								imgPath, screenWidth * 0.7F,
+								screenWidth * 0.7F, false, 100, Editor.this,
+								imgPadding, false);
+
+						mLock.lock();
+						isls.isWorking = false;// 工作完成同步记号
+						// 替换所有SpannableString
+						mhandler.post(new Runnable() {
+							@Override
+							public void run() {
+								// 201401212 Bitmap构造新的ImageSpan,替换文字
+								replaceAllImageSpans(isi.path, spanInfo, pic);
+								Logg.D("relaceImageSpans all by loading new");
+							}
+
+						});
+						isls.isFinished = true;
+						mLock.unlock();
+					} else {
+
+						mhandler.post(new Runnable() {
+							@Override
+							public void run() {
+								// 使用预置图片
+								relaceImageSpans(
+										( getResources()
+												.getDrawable(
+														R.drawable.editor_preload_img)), isi.start,
+										isi.end, isi.path);
+								Logg.D("relaceImageSpans by temp");
+							}
+						});
+						mLock.unlock();
+
+					}
+				}
+			};
+			executors.execute(thread);
+		}
+	}
+
+	private void replaceAllImageSpans(String path,
+			ArrayList<ImageSpanInfo> list, Bitmap bm) {
+		if (bm == null) {
+			throw new NullPointerException("bm cant be null");
+		}
+
+		for (ImageSpanInfo isi : list) {
+			if (path.equals(isi.path)) {
+				// path is like <img ... img>
+				SpannableString ss = new SpannableString(path);
+				ImageSpan span = new ImageSpan(this, bm,
+						ImageSpan.ALIGN_BASELINE);
+				ss.setSpan(span, 0, path.length(),
+						Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+				Editable et = contentText.getText();
+				et.delete(isi.start, isi.end);
+				et.insert(isi.start, ss);
+				contentText.setSelection(isi.end);
+			}
+		}
+	}
+
+	/**
+	 * 判断是否能保存到数据库 如果文本不为空则保存否则直接退出
+	 */
 	private void canBeSavedInDB() {
 		if (((titleText.getText().toString() != null) && (!"".equals(titleText
 				.getText().toString())))
@@ -514,16 +619,130 @@ public class Editor extends Activity implements
 						.equals(contentText.getText().toString())))) {
 			saveToDB();
 		} else {
-
 			Editor.this.finish();
 			overridePendingTransition(android.R.anim.fade_in,
 					android.R.anim.fade_out);
-
 		}
 	}
 
+	/**
+	 * 注意与数据库获取区分，是从当前文本获取ImageSpan的路径，首位置、末尾位置，供解析
+	 * 
+	 * @return 返回ImageSpanInfo的集合
+	 */
+	private ArrayList<ImageSpanInfo> getSpansInfo() {
+		Editable edit = contentText.getText();
+		ImageSpan[] imageSpans = edit.getSpans(0, contentText.getText()
+				.length(), ImageSpan.class);
+
+		if (imageSpans.length == 0) {
+			Logg.D("no span");
+			return null;
+		}
+		Logg.D("span count " + imageSpans.length);
+		// List保存Span信息
+		ArrayList<ImageSpanInfo> list = new ArrayList<ImageSpanInfo>();
+		for (ImageSpan ip : imageSpans) {
+			int start = edit.getSpanStart(ip);
+			int end = edit.getSpanEnd(ip);
+			String path = edit.toString().substring(start, end);
+			if (start < 0 || end < 0 || path == null) {
+				throw new IllegalStateException(
+						"start < 0 || end < 0 || path == null");
+			}
+
+			ImageSpanInfo info = new ImageSpanInfo();
+			info.start = start;
+			info.end = end;
+			info.path = path;
+			list.add(info);
+		}
+		Logg.D("list size " + list.size());
+		return list;
+	}
+
+	/**
+	 * 从二进制数组转换Arrayist对象
+	 * 
+	 * @param bytes
+	 *            二进制数组
+	 * @return ArrayList返回对象
+	 */
+	private ArrayList<ImageSpanInfo> getImageSpanInfoListFromBytes(byte[] bytes) {
+		ByteArrayInputStream arrayInputStream = new ByteArrayInputStream(bytes);
+		try {
+			ObjectInputStream inputStream = new ObjectInputStream(
+					arrayInputStream);
+			ArrayList<ImageSpanInfo> list = (ArrayList<ImageSpanInfo>) inputStream
+					.readObject();
+			Logg.D("imagespan cout from db " + list.size());
+			inputStream.close();
+			arrayInputStream.close();
+			return list;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 将ArrayList转化为二进制数组
+	 * 
+	 * @param list
+	 *            ArrayList对象
+	 * @return 二进制数组
+	 */
+	private byte[] getImageSpanInfoBytesFromObject(ArrayList<ImageSpanInfo> list) {
+		Logg.D("imagespan cout to db " + list.size());
+		ByteArrayOutputStream arrayOutputStream = new ByteArrayOutputStream();
+		try {
+			ObjectOutputStream objectOutputStream = new ObjectOutputStream(
+					arrayOutputStream);
+			objectOutputStream.writeObject(list);
+			objectOutputStream.flush();
+			byte[] data = arrayOutputStream.toByteArray();
+			objectOutputStream.close();
+			arrayOutputStream.close();
+			return data;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 向NoteRecord 增加ImageSpan的信息 ImageSpanInfo 包含图片地址 开始位置 结束位置
+	 * 
+	 * @param nr
+	 *            记录
+	 */
+	private void addImageSpanInfosToRecord(NoteRecord nr) {
+		// 20141211 保存ImageSpanInfos 到数据库
+		// 注意ArrayList已经实现了Serializable,可以直接序列化
+		ArrayList<ImageSpanInfo> spanInfo = getSpansInfo();
+		Logg.D("ArrayList before revert by bytes");
+		if (spanInfo != null) {
+			// for (ImageSpanInfo isi : spanInfo) {
+			// Logg.D("path " + isi.path + " ; start " + isi.start + " ; end "
+			// + isi.end);
+			// }
+			// 将ArrayList Object 转换为二进制数组
+			byte[] bytes = getImageSpanInfoBytesFromObject(spanInfo);
+			if (bytes == null) {
+				throw new NullPointerException("bytes is null!");
+			}
+			// Logg.D("bytes length = "+bytes.length);
+			nr.imageSpanInfos = bytes;
+		}
+	}
+
+	/**
+	 * 将数据保存到数据库
+	 */
 	private void saveToDB() {
-		long result = 0;
+
 		if (isPastNote) {
 			mNoteRecord.title = titleText.getText().toString();
 			mNoteRecord.content = contentText.getText().toString();
@@ -538,6 +757,7 @@ public class Editor extends Activity implements
 					.get(Calendar.HOUR_OF_DAY));
 			mNoteRecord.minute = String.valueOf(calendar.get(Calendar.MINUTE));
 			mNoteRecord.second = String.valueOf(calendar.get(Calendar.SECOND));
+			addImageSpanInfosToRecord(mNoteRecord);
 			noteDBManager.updateRecord(mNoteRecord);
 			if (appWidgetId != -1) {
 				Intent intent = new Intent("com.mars.note.widget.refresh");
@@ -562,6 +782,7 @@ public class Editor extends Activity implements
 					.get(Calendar.HOUR_OF_DAY));
 			mNoteRecord.minute = String.valueOf(calendar.get(Calendar.MINUTE));
 			mNoteRecord.second = String.valueOf(calendar.get(Calendar.SECOND));
+			addImageSpanInfosToRecord(mNoteRecord);
 			noteDBManager.updateRecord(mNoteRecord);
 			finish();
 			overridePendingTransition(android.R.anim.fade_in,
@@ -595,7 +816,8 @@ public class Editor extends Activity implements
 				mNoteRecord.second = String.valueOf(calendar
 						.get(Calendar.SECOND));
 				mNoteRecord.imgpath = this.imagePath;
-				result = noteDBManager.addRecord(mNoteRecord);
+				addImageSpanInfosToRecord(mNoteRecord);
+				noteDBManager.addRecord(mNoteRecord);
 				if (isRelatedToWidget) {
 					String noteId = noteDBManager
 							.querySingleRecordIDByTime(String
@@ -625,13 +847,6 @@ public class Editor extends Activity implements
 		exit();
 	}
 
-	private class EditTextOnFocusChangeListener implements
-			View.OnFocusChangeListener {
-		@Override
-		public void onFocusChange(View v, boolean hasFocus) {
-		}
-	}
-
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo mi) {
 		getMenuInflater().inflate(R.menu.context_menu_add_note_activity, menu);
@@ -642,7 +857,7 @@ public class Editor extends Activity implements
 	public boolean onContextItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.delete:
-			clearIMG();
+			// clearIMG();
 			break;
 		default:
 			break;
@@ -650,11 +865,12 @@ public class Editor extends Activity implements
 		return super.onContextItemSelected(item);
 	}
 
+	@Deprecated
 	private void clearIMG() {
 		this.imagePath = null;
-		this.mImageView.setImageBitmap(null);
-		imgContainer.setVisibility(View.GONE);
-		mImageView.setVisibility(View.GONE);
+		// this.mImageView.setImageBitmap(null);
+		// imgContainer.setVisibility(View.GONE);
+		// mImageView.setVisibility(View.GONE);
 	}
 
 	@Override
@@ -770,20 +986,24 @@ public class Editor extends Activity implements
 			if (cameraOrGallery_menu_pw.isShowing()) {
 				cameraOrGallery_menu_pw.dismiss();
 			}
-			Intent camera = new Intent();
-			camera.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
-			cameraIMGPath = BackUpAndRestore.BACKUP_PATH + "/bitmap_"
-					+ System.currentTimeMillis() + ".bmp";
-			camera.putExtra(MediaStore.EXTRA_OUTPUT,
-					Uri.fromFile(new File(cameraIMGPath)));
-			startActivityForResult(camera, REQUEST_CAMERA);
+			if (!hasReachedMax()) { // 控制图片数量
+				Intent camera = new Intent();
+				camera.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
+				cameraIMGPath = BackUpActivity.BACKUP_PATH + "/bitmap_"
+						+ System.currentTimeMillis() + ".bmp";
+				camera.putExtra(MediaStore.EXTRA_OUTPUT,
+						Uri.fromFile(new File(cameraIMGPath)));
+				startActivityForResult(camera, REQUEST_CAMERA);
+			} else {
+				Toast.makeText(this, R.string.editor_max_imgs, 2000).show();
+			}
 			break;
 
 		case R.id.gallery:
 			if (cameraOrGallery_menu_pw.isShowing()) {
 				cameraOrGallery_menu_pw.dismiss();
 			}
-			if (mEditorHelper.getPathsSize() <= imgNums) {
+			if (!hasReachedMax()) { // 控制图片数量
 				Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
 				intent.addCategory(Intent.CATEGORY_OPENABLE);
 				intent.setType("image/*");
@@ -799,6 +1019,32 @@ public class Editor extends Activity implements
 		}
 	}
 
+	/**
+	 * 
+	 * @return true表示达到最大，false表示尚未达到
+	 */
+	private boolean hasReachedMax() {
+		Editable edit = contentText.getText();
+		ImageSpan[] imageSpan = edit
+				.getSpans(0, edit.length(), ImageSpan.class);
+		// Logg.D("imagespan count " + imageSpan.length);
+		// mSet取不相同的路径
+		HashSet<String> mSet = new HashSet<String>();
+		for (ImageSpan ip : imageSpan) {
+			int start = edit.getSpanStart(ip);
+			int end = edit.getSpanEnd(ip);
+			String path = edit.toString().substring(start, end);
+			mSet.add(path);
+			Logg.D(path);
+		}
+		Logg.D("mSet size " + mSet.size());
+		if (mSet.size() < 10) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		switch (requestCode) {
@@ -806,7 +1052,7 @@ public class Editor extends Activity implements
 			// 接受图库返回结果
 			if (RESULT_OK == resultCode) {
 				Uri selectedImage = data.getData();
-				imgContainer.setVisibility(View.VISIBLE);
+				// imgContainer.setVisibility(View.VISIBLE);
 				imagePath = PictureHelper.getPath(this, selectedImage);
 				setImageView();
 			}
@@ -817,7 +1063,7 @@ public class Editor extends Activity implements
 				this.finish(); // 20141202 验证失败则退出
 			} else if (resultCode == RESULT_OK) {
 				this.getActionBar().show(); // 验证成功后显示actionbar
-				Log.d("mars", "refresh");
+				Logg.D("refresh");
 				refresh();
 			}
 			break;
@@ -826,7 +1072,7 @@ public class Editor extends Activity implements
 			if (resultCode == RESULT_OK) {
 				imagePath = cameraIMGPath;
 				cameraIMGPath = null;
-				imgContainer.setVisibility(View.VISIBLE);
+				// imgContainer.setVisibility(View.VISIBLE);
 				setImageView();
 			}
 			break;
@@ -855,16 +1101,109 @@ public class Editor extends Activity implements
 			return null;
 		}
 	}
-	
-	private void insertIntoEditor(Bitmap bm) {
-		SpannableString ss = new SpannableString(imagePath);
-		ImageSpan span = new ImageSpan(this, bm);
-		ss.setSpan(span, 0, imagePath.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-		
-		Editable editable = contentText.getEditableText();
+
+	/**
+	 * 从当前的EditText获取ImageSpan,如果存在则返回否则返回Null
+	 * 
+	 * @return
+	 */
+	private ImageSpan getImageSpanFromExistence(String source) {
+		Editable edit = contentText.getText();
+		ImageSpan[] spans = edit.getSpans(0, edit.length(), ImageSpan.class);
+		for (ImageSpan ip : spans) {
+			int start = edit.getSpanStart(ip);
+			int end = edit.getSpanEnd(ip);
+			String path = edit.toString().substring(start, end);
+			path = path.substring(5, path.length() - 5);
+
+			if (source.equals(path)) {
+				Logg.D("find existed ImageSpan");
+				return new ImageSpan(ip.getDrawable(), ImageSpan.ALIGN_BASELINE);
+			}
+		}
+		// mSet取不相同的路径
+		return null;
+	}
+
+	/**
+	 * 将图片路径映射到Bitmap，再通过SpannableString 和 ImageSpan显示到EditText
+	 */
+	private void setImageView() {
+		// 如果EditText中已经有相同资源的ImageSpan,则不再读取图片
+		ImageSpan imageSpan = getImageSpanFromExistence(imagePath);
+		if (imageSpan != null) {
+			insertIntoEditor(imageSpan, imagePath);
+			return;
+		}
+
+		if (imagePath != null && (!imagePath.equals("null"))
+				&& (!"".equals(imagePath))) {
+			insertIntoEditor(imagePath);
+
+			/*
+			 * 不再用缓存模式 
+			 */
+		}
+	}
+
+	/**
+	 * 向光标位置插入ImageSpan,针对EditText已经有ImageSpan的情况
+	 * 
+	 * @param ip
+	 *            ImageSpan
+	 * @param path
+	 *            路径
+	 */
+	private void insertIntoEditor(ImageSpan span, String path) {
+		SpannableString ss = new SpannableString("<img " + path + " img>");
+		if (span == null)
+			throw new NullPointerException("span cant be null");
+		ss.setSpan(span, 0, ("<img " + path + " img>").length(),
+				Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+		Editable et = contentText.getText();// 先获取Edittext中的内容
 		int start = contentText.getSelectionStart();
-		editable.insert(start, ss);// 设置ss要添加的位置
-		contentText.setText(editable);// 把et添加到Edittext中
+		et.insert(start, ss);// 设置ss要添加的位置
 		contentText.setSelection(start + ss.length());// 设置Edittext中光标在最后面显示
+		Logg.D("insertIntoEditor by using existed ImageSpan");
+	}
+
+	/**
+	 * 向光标位置插入ImageSpan,针对EditText没有图片的情况
+	 * 
+	 * @param path
+	 *            图片路径
+	 */
+	private void insertIntoEditor(String path) {
+		SpannableString ss = new SpannableString("<img " + path + " img>");
+		// 不再用缓存模式
+		// Bitmap bm = mEditorHelper.getImage(path);
+		Bitmap bm = PictureHelper.getImageFromPath(imagePath,
+				screenWidth * 0.7F, screenWidth * 0.7F, false, 100, Editor.this,
+				imgPadding, false);
+		if (bm == null) {
+			throw new NullPointerException("bm cant be null");
+		}
+
+		ImageSpan span = new ImageSpan(this, bm, ImageSpan.ALIGN_BASELINE);
+		ss.setSpan(span, 0, ("<img " + path + " img>").length(),
+				Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+		Editable et = contentText.getText();// 先获取Edittext中的内容
+		int start = contentText.getSelectionStart();
+		et.insert(start, ss);// 插入图片到光标处
+		contentText.setSelection(start + ss.length());// 设置Edittext中光标在最后面显示
+		Logg.D("insertIntoEditor by loading new");
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		mEditorHelper.clearImageCache();
+		mEditorHelper = null;
+		Logg.D("Editor destroyed");
+	}
+
+	private class ImageSpanLoaderStatus {
+		public boolean isWorking = false;
+		public boolean isFinished = false;
 	}
 }

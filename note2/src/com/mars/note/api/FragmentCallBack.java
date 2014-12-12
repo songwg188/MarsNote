@@ -1,4 +1,4 @@
-package com.mars.note;
+package com.mars.note.api;
 
 public interface FragmentCallBack {
 	void switchFragment(int to);

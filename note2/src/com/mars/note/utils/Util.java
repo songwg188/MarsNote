@@ -1,4 +1,4 @@
-package com.mars.note.views;
+package com.mars.note.utils;
 
 import android.content.res.Resources;
 import android.util.TypedValue;

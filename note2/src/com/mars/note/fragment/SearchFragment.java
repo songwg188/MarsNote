@@ -7,12 +7,12 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.mars.note.Config;
 import com.mars.note.Editor;
-import com.mars.note.FragmentCallBack;
 import com.mars.note.Main;
 import com.mars.note.NoteApplication;
 import com.mars.note.R;
+import com.mars.note.api.Config;
+import com.mars.note.api.FragmentCallBack;
 import com.mars.note.database.NoteDataBaseManager;
 import com.mars.note.database.NoteRecord;
 import com.mars.note.utils.AnimationHelper;
@@ -43,6 +43,11 @@ import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.TextView;
 
+/**
+ * 搜索记录
+ * @author mars
+ *
+ */
 public class SearchFragment extends Fragment implements OnClickListener,
 		SearchView.OnQueryTextListener {
 	private static final String TAG = "SearchFragment";

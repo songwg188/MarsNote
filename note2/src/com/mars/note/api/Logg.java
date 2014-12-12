@@ -1,4 +1,4 @@
-package com.mars.note;
+package com.mars.note.api;
 
 public class Logg {
 	public static final String TAG = "mars";

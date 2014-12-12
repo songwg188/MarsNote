@@ -15,9 +15,10 @@ public class NoteDBField {
 	public static final String IMGPATH = "imgpath";
 	public static final String IMGPATHS = "imgpaths";
 	public static final String NOTE_AUTOHORITY = "com.mars.note";
-	public static final int VERSION = 2;
+	public static final int VERSION = 3;
 	public static final String DBNAME = "records.db";
 	public static final String WIDGETS_TABLE_NAME = "widgets";
 	public static final String WIDGETS_ID = "widgets_id";
 	public static final String NOTES_ID = "notes_id";
+	public static final String IMAGESPANINFOS = "image_span_infos";
 }

@@ -1,4 +1,4 @@
-package com.mars.note;
+package com.mars.note.api;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
@@ -11,6 +11,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.mars.note.BackUpActivity;
+
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -27,7 +30,7 @@ public class CrashHandler implements UncaughtExceptionHandler {
 	private static CrashHandler INSTANCE = new CrashHandler();
 	private Context mContext;
 	private Map<String, String> infos = new HashMap<String, String>();
-	public static final String BACKUP_PATH = BackUpAndRestore.BACKUP_PATH;
+	public static final String BACKUP_PATH = BackUpActivity.BACKUP_PATH;
 	private DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
 	private CrashHandler() {
 	}

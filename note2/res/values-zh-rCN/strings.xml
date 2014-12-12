@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 
-    <string name="app_name">我的笔记</string>
-    <string name="activity_note_title">我的笔记</string>
-    <string name="widget_name">我的便签</string>
+    <string name="app_name">Mars笔记</string>
+    <string name="activity_note_title">Mars笔记</string>
+    <string name="widget_name">Mars便签</string>
     <string name="widget_collections_name">最近记录</string>
     <string name="title_activity_add_note">添加笔记</string>
     <string name="monday">周一</string>
@@ -121,6 +121,6 @@
 	<string name ="popwindow_camera">拍照</string>
 	<string name ="popwindow_gallery">图库</string>
 	
-	<string name ="editor_max_imgs">您只能插入10张图哦</string>
+	<string name ="editor_max_imgs">您只能插入10张不同的图片哦</string>
 	
 </resources>

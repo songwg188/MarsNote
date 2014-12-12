@@ -1,21 +1,20 @@
-package com.mars.note;
+package com.mars.note.api;
 
 import java.util.LinkedList;
+
 
 import android.graphics.Bitmap;
 import android.support.v4.util.LruCache;
 
-/*
+/**
  * author mars
  * date 20141205
- * description °ïÖúEditor»º´æÍ¼Æ¬£¬±£´æÍ¼Æ¬µØÖ·µÈµÈ,Ê¹ÓÃÓÚĞÂ¹¦ÄÜ£ºÍ¼ÎÄ²¢ÅÅ
+ * description å¸®åŠ©Editorç¼“å­˜ï¼Œä¿å­˜å›¾ç‰‡åœ°å€
  */
 public class EditorHelper {
-	public static LruCache<String, Bitmap> mIMGCache; //Í¼Æ¬»º´æ
-	EditorImagePaths mEditorImagePaths; //µØÖ·¼¯ºÏ
+	public static LruCache<String, Bitmap> mIMGCache; //Editorçš„å›¾ç‰‡ç¼“å­˜
 
 	public EditorHelper() {
-		mEditorImagePaths = new EditorImagePaths();
 		initBitmapCache();
 	}
 
@@ -26,14 +25,22 @@ public class EditorHelper {
 	private void initBitmapCache() {
 		if (mIMGCache == null) {
 			int maxMemory = (int) Runtime.getRuntime().maxMemory();
-			int mCacheSize = maxMemory / 8;
-			// Logg.D("maxMemory = "+maxMemory);
-			// Logg.D("mCacheSize = "+mCacheSize);
+			int mCacheSize = maxMemory / 4;
+			 Logg.D("mCacheSize = "+mCacheSize);
 			mIMGCache = new LruCache<String, Bitmap>(mCacheSize) {
 				@Override
-				protected int sizeOf(String key, Bitmap value) {
-					if (value != null) {
-						return value.getRowBytes() * value.getHeight();
+				protected int sizeOf(String key, Bitmap bm) {
+					if (bm != null) {
+//						Logg.D("bm.getRowBytes() ="+bm.getRowBytes());
+//						Logg.D("bm.getWidth() ="+bm.getWidth());
+//						Logg.D("bm.getHeight() ="+bm.getHeight());
+//						Logg.D("bm.getDensity() ="+bm.getDensity());
+//						Logg.D("ARGB 8888 = 4");
+//						Logg.D("usage size = "+(bm.getRowBytes() * bm.getHeight()));
+//						Logg.D("left size = "+(mIMGCache.maxSize()-
+//								(mIMGCache.size()+bm.getRowBytes() * bm.getHeight())));
+						
+						return bm.getRowBytes() * bm.getHeight();
 					}
 					return 0;
 				}
@@ -55,22 +62,6 @@ public class EditorHelper {
 	
 	public void clearImageCache(){
 		mIMGCache.evictAll();
-	}
-	
-	public void addPath(String path){
-		mEditorImagePaths.addPath(path);
-	}
-	
-	public void removePath(String path){
-		mEditorImagePaths.removePath(path);
-	}
-	
-	public int getPathsSize(){
-		return mEditorImagePaths.getSize();
-	}
-	
-	public void clearPaths(){
-		mEditorImagePaths.clearPaths();
 	}
 	
 }

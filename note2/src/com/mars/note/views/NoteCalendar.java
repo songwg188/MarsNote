@@ -1,9 +1,9 @@
 package com.mars.note.views;
 import java.util.Calendar;
 import java.util.Date;
-import com.mars.note.Config;
 import com.mars.note.NoteApplication;
 import com.mars.note.R;
+import com.mars.note.api.Config;
 import com.mars.note.database.NoteDataBaseManager;
 import android.content.Context;
 import android.content.res.TypedArray;

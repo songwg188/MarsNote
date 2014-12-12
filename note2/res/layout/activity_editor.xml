@@ -19,95 +19,115 @@
         android:layout_height="0.5dp"
         android:background="#AACDB79E" />
 
-    <com.mars.note.views.MarsScrollView
-        android:id="@+id/scrollView1"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fadingEdge="none"
-        android:fillViewport="true"
-        android:overScrollMode="never"
-        android:paddingTop="0dp"
-        android:scrollbars="none" >
+        android:layout_height="match_parent" >
 
-        <LinearLayout
+        <com.mars.note.views.MarsScrollView
+            android:id="@+id/scrollView1"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingLeft="@dimen/activity_horizontal_margin"
-            android:paddingRight="@dimen/activity_horizontal_margin" >
+            android:layout_height="match_parent"
+            android:fadingEdge="none"
+            android:fillViewport="true"
+            android:overScrollMode="never"
+            android:paddingTop="0dp"
+            android:scrollbars="none" >
 
-            <FrameLayout
-                android:id="@+id/img_container"
-                android:layout_width="match_parent"
-                android:layout_height="800px"
-                android:visibility="gone" >
-
-                <ProgressBar
-                    android:id="@+id/loadimg_progress"
-                    style="?android:attr/progressBarStyleLarge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:indeterminate="true"
-                    android:visibility="visible" />
-
-                <ImageView
-                    android:id="@+id/note_image"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="center"
-                    android:layout_marginBottom="0dp"
-                    android:paddingTop="15dp"
-                    android:visibility="gone" />
-            </FrameLayout>
-
-            <EditText
-                android:id="@+id/titleText"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@null"
-                android:ems="10"
-                android:gravity="left|top"
-                android:hint="@string/add_note_title_hint"
-                android:maxLength="50"
-                android:paddingTop="15dp"
-                android:singleLine="true"
-                android:textAppearance="@android:style/TextAppearance.Large"
-                android:textColor="#DDDDDD"
-                android:textColorHint="#AAAAAA" >
-            </EditText>
+                android:orientation="vertical"
+                android:paddingLeft="@dimen/activity_horizontal_margin"
+                android:paddingRight="@dimen/activity_horizontal_margin" >
 
-            <View
-                android:id="@+id/divider"
-                android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:background="@color/white"
-                android:visibility="visible" />
+                <!-- 20141208 图文混排后废除顶部图片框 -->
+                <!-- <FrameLayout -->
+                <!-- android:id="@+id/img_container" -->
+                <!-- android:layout_width="match_parent" -->
+                <!-- android:layout_height="800px" -->
+                <!-- android:visibility="gone" > -->
 
-<!--             <com.mars.note.views.NoteContentEditText 20141205图文混排去掉底部白线-->
-			<EditText
-                android:id="@+id/contentText"
-                android:layout_width="match_parent"
-                android:layout_height="fill_parent"
-                android:layout_marginBottom="20dp"
-                android:layout_marginTop="5dp"
-                android:background="@null"
-                android:ems="10"
-                android:gravity="left|top"
-                android:lineSpacingExtra="3dp"
-                android:maxLength="5000"
-                android:minHeight="390dp"
-                android:textColor="#DDDDDD"
-                android:textColorHint="#AAAAAA"
-                android:textSize="19sp" />
-            <!-- android:maxLength="2000" -->
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="150dp"
-                android:background="@color/transparent"
-                android:visibility="visible" />
-        </LinearLayout>
-    </com.mars.note.views.MarsScrollView>
+                <!-- <ProgressBar -->
+                <!-- android:id="@+id/loadimg_progress" -->
+                <!-- style="?android:attr/progressBarStyleLarge" -->
+                <!-- android:layout_width="wrap_content" -->
+                <!-- android:layout_height="wrap_content" -->
+                <!-- android:layout_gravity="center" -->
+                <!-- android:indeterminate="true" -->
+                <!-- android:visibility="visible" /> -->
+
+
+                <!-- <ImageView -->
+                <!-- android:id="@+id/note_image" -->
+                <!-- android:layout_width="match_parent" -->
+                <!-- android:layout_height="match_parent" -->
+                <!-- android:layout_gravity="center" -->
+                <!-- android:layout_marginBottom="0dp" -->
+                <!-- android:paddingTop="15dp" -->
+                <!-- android:visibility="gone" /> -->
+                <!-- </FrameLayout> -->
+
+                <EditText
+                    android:id="@+id/titleText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@null"
+                    android:ems="10"
+                    android:gravity="left|top"
+                    android:hint="@string/add_note_title_hint"
+                    android:maxLength="50"
+                    android:paddingTop="15dp"
+                    android:singleLine="true"
+                    android:textAppearance="@android:style/TextAppearance.Large"
+                    android:textColor="#DDDDDD"
+                    android:textColorHint="#AAAAAA" >
+                </EditText>
+
+                <View
+                    android:id="@+id/divider"
+                    android:layout_width="match_parent"
+                    android:layout_height="2dp"
+                    android:background="@color/white"
+                    android:visibility="visible" />
+                <com.mars.note.views.NoteContentEditText 
+                    android:id="@+id/contentText"
+                    android:layout_width="match_parent"
+                    android:layout_height="fill_parent"
+                    android:layout_marginBottom="20dp"
+                    android:layout_marginTop="5dp"
+                    android:background="@null"
+                    android:ems="10"
+                    android:gravity="left|top"
+                    android:lineSpacingExtra="3dp"
+                    android:maxLength="5000"
+                    android:minHeight="390dp"
+                    android:singleLine="false"
+                    android:scrollHorizontally="false"
+                    android:textColor="#DDDDDD"
+                    android:textColorHint="#AAAAAA"
+                    android:textSize="19sp" />
+                <!-- android:maxLength="2000" -->
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="150dp"
+                    android:background="@color/transparent"
+                    android:visibility="visible" />
+            </LinearLayout>
+        </com.mars.note.views.MarsScrollView>
+<!--         <RelativeLayout  -->
+<!--             android:layout_width="match_parent" -->
+<!--             android:layout_height="match_parent" -->
+<!--             > -->
+<!--             <LinearLayout  -->
+<!--                 android:layout_width="match_parent" -->
+<!--                 android:layout_height="100dp" -->
+<!--                 android:layout_alignParentBottom="true" -->
+<!--                 android:background="#44FFFFFF" -->
+                
+<!--                 ></LinearLayout> -->
+<!--         </RelativeLayout> -->
+    </FrameLayout>
 
 </LinearLayout>

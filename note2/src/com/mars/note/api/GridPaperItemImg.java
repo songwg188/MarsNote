@@ -1,4 +1,4 @@
-package com.mars.note.fragment;
+package com.mars.note.api;
 import android.graphics.Bitmap;
 public class GridPaperItemImg {
 	public int index;

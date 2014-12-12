@@ -1,4 +1,4 @@
-package com.mars.note;
+package com.mars.note.api;
 
 public class Config {
 	public static boolean calendar_needRefresh = false;
@@ -10,5 +10,5 @@ public class Config {
 	public static final int maxCountEachDay = 100;
 	public static int maxShownCount = 1000;
 	
-	public static boolean animation_finished = true; //20141125 ÓÃÓÚÍ¬²½titlebarµÄ°´Å¥¶¯»­
+	public static boolean animation_finished = true; //20141125 ï¿½ï¿½ï¿½ï¿½Í¬ï¿½ï¿½titlebarï¿½Ä°ï¿½Å¥ï¿½ï¿½ï¿½ï¿½
 }

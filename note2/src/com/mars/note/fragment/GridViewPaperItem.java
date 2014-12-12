@@ -5,12 +5,18 @@ import java.util.Calendar;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.locks.ReentrantLock;
+
 import com.mars.note.Editor;
 import com.mars.note.Main;
 import com.mars.note.NoteApplication;
 import com.mars.note.R;
+import com.mars.note.api.GridPaperItemImg;
+import com.mars.note.api.GridViewPaperItemForBatchDelete;
+import com.mars.note.api.Logg;
 import com.mars.note.database.NoteDataBaseManager;
 import com.mars.note.database.NoteRecord;
 import com.mars.note.utils.PictureHelper;
@@ -39,21 +45,26 @@ import android.widget.ImageView;
 import android.widget.Toast;
 import android.widget.TextView;
 
+/**
+ * 表示GridView的每一页，是一个Fragment
+ * 
+ * @author mars
+ */
 public class GridViewPaperItem extends Fragment {
 	private static final String TAG = "GridViewPaper";
 	private Activity mActivity;
-	NoteDataBaseManager noteDBManager;
-	int index = -1;
-	MyGridView gridView;
-	TextView indexText;
-	BaseAdapter mAdapter;
-	List<NoteRecord> list_note_data;
+	private NoteDataBaseManager noteDBManager;
+	private int index = -1;
+	private MyGridView gridView;
+	private TextView indexText;
+	private BaseAdapter mAdapter;
+	private List<NoteRecord> list_note_data;
 	private ExecutorService executors;
-
-	LruCache<String, Bitmap> mBitmapCache;
-
-	private static ArrayList<com.mars.note.fragment.GridViewPaperItemForBatchDelete> mGridViewBatchDeleteCache;
-	CallBack mCallBack;
+	private LruCache<String, Bitmap> mBitmapCache;
+	private ArrayList<com.mars.note.api.GridViewPaperItemForBatchDelete> mGridViewBatchDeleteCache;
+	private CallBack mCallBack;
+	private ConcurrentHashMap<String, Boolean> mConcurentMap;
+	private ReentrantLock mLock;
 
 	public void setCallBack(CallBack cb) {
 		mCallBack = cb;
@@ -82,6 +93,8 @@ public class GridViewPaperItem extends Fragment {
 		index = getArguments().getInt("index") + 1;
 		setBitmapCache();
 		executors = NoteApplication.getExecutors();
+		mConcurentMap = new ConcurrentHashMap<String, Boolean>();// 保存线程工作状态
+		mLock = new ReentrantLock(true);// 20141212 公平锁
 		mGridViewBatchDeleteCache = NoteApplication
 				.getmGridViewBatchDeleteCache();
 	}
@@ -103,8 +116,6 @@ public class GridViewPaperItem extends Fragment {
 		mAdapter = new BaseAdapter() {
 			LayoutInflater inflate = LayoutInflater.from(GridViewPaperItem.this
 					.getActivity());
-			String[] date_title = mActivity.getResources().getStringArray(
-					R.array.date_title);
 
 			@Override
 			public int getCount() {
@@ -182,7 +193,7 @@ public class GridViewPaperItem extends Fragment {
 							if (mCallBack != null) {
 								mCallBack.showDeleteUI();
 							}
-						}else{
+						} else {
 							int position = ((ViewHolder) v.getTag()).position;
 							int arrayPos = position + (index - 1) * 6;
 							GridViewPaperItemForBatchDelete item = mGridViewBatchDeleteCache
@@ -219,7 +230,6 @@ public class GridViewPaperItem extends Fragment {
 								}
 							}
 
-							
 						} else {
 							Intent editNote = new Intent(mActivity,
 									Editor.class);
@@ -241,15 +251,16 @@ public class GridViewPaperItem extends Fragment {
 				final String path = nr.imgpath;
 				if (parent.getChildCount() == pos) {
 					if (path != null && (!path.equals("null"))) {
-						//20141125 有图的item content的行数设置为单行
+						// 20141125 有图的item content的行数设置为单行
 						holder.content.setMaxLines(1);
-						long start = System.currentTimeMillis();
+						// 缓存在NoteApplication初始化
 						if (mBitmapCache == null) {
 							throw new NullPointerException(
 									"mBitmapCache cant be null");
 						}
-
+						// 从主线程进入
 						if (mBitmapCache.get(path) == null) {
+							// 缓存中没有找到图片
 							final GridPaperItemImg item = new GridPaperItemImg();
 							item.index = index;
 							item.position = pos;
@@ -258,9 +269,14 @@ public class GridViewPaperItem extends Fragment {
 							img.setTag(Integer.valueOf(pos));
 							item.bm = mBitmapCache.get(path);
 							if (item.bm != null) {
+								// 如果碰巧有线程加载图片到缓存
 								img.setVisibility(View.VISIBLE);
 								img.setImageBitmap(item.bm);
 							} else {
+								// 初始化mConcurentMap
+								if (mConcurentMap.get(path) == null)
+									mConcurentMap.put(path, false);
+
 								final Handler handler = new Handler() {
 									@Override
 									public void handleMessage(Message msg) {
@@ -272,6 +288,18 @@ public class GridViewPaperItem extends Fragment {
 												}
 												img.setVisibility(View.VISIBLE);
 												img.setImageBitmap(item.bm);
+												Logg.D(path + " is load new");
+											}
+										} else if (msg.what == 2) {
+											if (((Integer) img.getTag())
+													.intValue() == item.position) {
+												if (item.bm == null) {
+													return;
+												}
+												img.setVisibility(View.VISIBLE);
+												img.setImageBitmap(item.bm);
+												Logg.D(path
+														+ " is load from cache");
 											}
 										}
 									}
@@ -279,40 +307,73 @@ public class GridViewPaperItem extends Fragment {
 								Thread thread = new Thread() {
 									@Override
 									public void run() {
-										if (path != null
-												&& (!path.equals("null"))
-												&& (!"".equals(path))) {
-											item.bm = PictureHelper
-													.getCropImage(path, 300,
-															true, 100,
-															mActivity, 7, true);
-											if(item.bm!=null)
-												mBitmapCache.put(path, item.bm);
+										// 此处线程同步，第一个线程工作，其他等待
+										mLock.lock();
+										if (mConcurentMap.get(path) == false) {
+											// Logg.D("mConcurentMap.get(path) = "+mConcurentMap.get(path));
+											mConcurentMap.put(path, true);
+											mLock.unlock();
+//											Logg.D("mConcurentMap.get(path) = "
+//													+ mConcurentMap.get(path));
 
+											if (path != null
+													&& (!path.equals("null"))
+													&& (!"".equals(path))) {
+												item.bm = PictureHelper
+														.getCropImage(path,
+																300, true, 100,
+																mActivity, 7,
+																true);
+												mBitmapCache.put(path, item.bm);
+												mConcurentMap.put(path, false);
+
+											} else {
+												item.bm = null;
+												mConcurentMap.put(path, false);
+											}
+											Message msg = new Message();
+											msg.what = 1;
+											handler.sendMessage(msg);
 										} else {
-											item.bm = null;
+											mLock.unlock();
+											while (true) {
+												if (mConcurentMap.get(path) == false) {
+													// Logg.D("other need break cycle");
+													break;
+												}
+											}
+											// Logg.D("other go out cycle");
+											if (mBitmapCache.get(path) != null) {
+												item.bm = mBitmapCache
+														.get(path);
+												Message msg = new Message();
+												msg.what = 2;
+												handler.sendMessage(msg);
+											} else {
+												throw new NullPointerException(
+														"(mBitmapCache.get(path) == null!");
+											}
 										}
-										Message msg = new Message();
-										msg.what = 1;
-										handler.sendMessage(msg);
 									}
 								};
 								executors.execute(thread);
 
-								long use = System.currentTimeMillis() - start;
 							}
 						} else {
 							if (mBitmapCache.get(path) != null) {
 								holder.img.setImageBitmap(mBitmapCache
 										.get(path));
 								holder.img.setVisibility(View.VISIBLE);
+								Logg.D(path + " is from cache");
 							} else {
+								throw new NullPointerException(
+										"(mBitmapCache.get(path) == null!");
 							}
 						}
 
 					} else {
 						holder.img.setVisibility(View.GONE);
-						//20141125 有图的item content的行数设置为多行
+						// 20141125 有图的item content的行数设置为多行
 						holder.content.setMaxLines(6);
 					}
 				}
@@ -321,7 +382,6 @@ public class GridViewPaperItem extends Fragment {
 			}
 
 			class ViewHolder {
-				boolean firstLoad = true;
 				int position;
 				TextView date;
 				TextView title;
@@ -332,7 +392,6 @@ public class GridViewPaperItem extends Fragment {
 		gridView.setAdapter(mAdapter);
 		return v;
 	}
-
 
 	@Override
 	public void onResume() {

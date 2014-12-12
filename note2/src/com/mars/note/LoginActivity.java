@@ -20,7 +20,7 @@ public class LoginActivity extends Activity implements OnGestureFinishListener {
 	private String pass2;
 	private SharedPreferences shares;
 	/*
-	 * mode 0 £º´ÓÖ÷½çÃæ½øÈë 3 £º´Ówidget½øÈë 1 £º´ÓÉèÖÃ½øÈë£¬ÇÒÎ´ÉèÖÃÃÜÂë 2 £º´ÓÉèÖÃ½øÈë£¬ÒÑ¾­ÉèÖÃÃÜÂë
+	 * mode 0 ï¼šä»ä¸»ç•Œé¢è¿›å…¥ 3 ï¼šä»widgetè¿›å…¥ 1 ï¼šä»è®¾ç½®è¿›å…¥ï¼Œä¸”æœªè®¾ç½®å¯†ç  2 ï¼šä»è®¾ç½®è¿›å…¥ï¼Œå·²ç»è®¾ç½®å¯†ç 
 	 */
 	private int mode = 1;
 
@@ -68,7 +68,7 @@ public class LoginActivity extends Activity implements OnGestureFinishListener {
 					} else {
 					}
 				} else {
-					this.setResult(RESULT_OK);//ÏÈÖ´ĞĞsetResult£¬·ñÔòÖ±½Ó¹Ø±Õ
+					this.setResult(RESULT_OK);//å…ˆæ‰§è¡ŒsetResultï¼Œå¦åˆ™ç›´æ¥å…³é—­
 					this.finish();
 				}
 			}else if(mode == 3){
@@ -80,7 +80,7 @@ public class LoginActivity extends Activity implements OnGestureFinishListener {
 					} else {
 					}
 				} else {
-					this.setResult(RESULT_OK);//ÏÈÖ´ĞĞsetResult£¬·ñÔòÖ±½Ó¹Ø±Õ
+					this.setResult(RESULT_OK);//å…ˆæ‰§è¡ŒsetResultï¼Œå¦åˆ™ç›´æ¥å…³é—­
 					this.finish();
 				}
 			}
@@ -151,7 +151,7 @@ public class LoginActivity extends Activity implements OnGestureFinishListener {
 					attention.setTextColor(Color.BLACK);
 					attention.setText(R.string.attention_success2);
 					
-					this.setResult(RESULT_OK); //ÏÈÖ´ĞĞsetResult£¬·ñÔòÖ±½Ó¹Ø±Õ
+					this.setResult(RESULT_OK); //å…ˆæ‰§è¡ŒsetResultï¼Œå¦åˆ™ç›´æ¥å…³é—­
 					this.finish();
 				} else {
 					pass2 = null;
@@ -169,7 +169,7 @@ public class LoginActivity extends Activity implements OnGestureFinishListener {
 					attention.setTextColor(Color.BLACK);
 					attention.setText(R.string.attention_success2);
 					
-					this.setResult(RESULT_OK); //ÏÈÖ´ĞĞsetResult£¬·ñÔòÖ±½Ó¹Ø±Õ
+					this.setResult(RESULT_OK); //å…ˆæ‰§è¡ŒsetResultï¼Œå¦åˆ™ç›´æ¥å…³é—­
 					this.finish();
 				} else {
 					pass2 = null;

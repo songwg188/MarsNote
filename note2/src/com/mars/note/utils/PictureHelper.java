@@ -1,10 +1,13 @@
 package com.mars.note.utils;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+
+import com.mars.note.api.Logg;
 
 import android.annotation.SuppressLint;
 import android.content.ContentUris;
@@ -93,31 +96,73 @@ public class PictureHelper {
 		}
 		return bitmap;
 	}
-
+	/**
+	 * 
+	 * @param srcPath
+	 * @param destH
+	 * @param destW
+	 * @param compress 可能导致内存溢出
+	 * @param size
+	 * @param context
+	 * @param padding
+	 * @param addEdge 可能导致内存溢出
+	 * @return
+	 */
 	public static Bitmap getImageFromPath(String srcPath, float destH,
 			float destW, boolean compress, int size, Context context,
 			int padding, boolean addEdge) {
 		BitmapFactory.Options newOpts = new BitmapFactory.Options();
-		newOpts.inJustDecodeBounds = true;
-		Bitmap bitmap = BitmapFactory.decodeFile(srcPath, newOpts);// 姝ゆ椂杩斿洖bm涓虹┖
+		newOpts.inJustDecodeBounds = true; // 只解析尺寸信息，并不生成bitmap实例
+		Bitmap bitmap = BitmapFactory.decodeFile(srcPath, newOpts);
 		newOpts.inJustDecodeBounds = false;
 		int w = newOpts.outWidth;
 		int h = newOpts.outHeight;
-		int be = 1;//
-		if (w > h && w > destW) {
-//			Log.d("pic", "w > h ");
+		Logg.D("h = " + h);
+		Logg.D("w = " + w);
+		int be = 1;
+		if (w > destW) {
 			be = (int) (newOpts.outWidth / destW);
-		} else if (w < h && h > destH) {
-//			Log.d("pic", "w < h ");
-			be = (int) (newOpts.outHeight / destH);
 		}
+		if (h > 3000) //3000高度以上的图片按高度比例压缩
+			be = (int) (newOpts.outHeight / destH);
+		// else if (w < h && h > destH) {
+		 be = (int) (newOpts.outHeight / destH);
+		// }
 		if (be <= 0)
 			be = 1;
 		newOpts.inSampleSize = be;//
+		newOpts.inPreferredConfig = Bitmap.Config.ARGB_8888;// 一个像素占据4字节(4b)
 		bitmap = BitmapFactory.decodeFile(srcPath, newOpts);
 		if (bitmap == null) {
-			return null;
+			throw new NullPointerException("bitmap cant be null!");
 		}
+
+		// 将图片缩放至指定尺寸
+		int srcH = bitmap.getHeight();
+		int srcW = bitmap.getWidth();
+		Logg.D("srcH = " + srcH);
+		Logg.D("srcW = " + srcW);
+
+		Logg.D("destH = " + destH);
+		Logg.D("destW = " + destW);
+
+//		Logg.D("be = " + be);
+
+		if (be >= 1) {
+			Matrix matrix = new Matrix();
+			// if (w > h) {
+			if (h <= 5000) {
+				float scale = ((float) destW) / srcW;
+				matrix.postScale(scale, scale);
+				bitmap = Bitmap.createBitmap(bitmap, 0, 0, srcW, srcH, matrix,
+						true);
+
+				Logg.D("matrixH = " + bitmap.getHeight());
+				Logg.D("matrixW = " + bitmap.getWidth());
+			}
+
+		}
+
 		if (compress) {
 			if (addEdge) {
 				return addEdge(compressImage(bitmap, size), context, padding);
@@ -128,6 +173,7 @@ public class PictureHelper {
 		if (addEdge) {
 			return addEdge(bitmap, context, padding);
 		}
+		System.gc();// ?
 		return bitmap;
 	}
 
@@ -142,7 +188,7 @@ public class PictureHelper {
 		int h = newOpts.outHeight;
 		int be = 1;//
 		if (w > destW) {
-//			Log.d("pic", "w > h ");
+			// Log.d("pic", "w > h ");
 			be = (int) (newOpts.outWidth / destW);
 		}
 		if (be <= 0)
@@ -167,17 +213,17 @@ public class PictureHelper {
 
 	public static Bitmap compressImage(Bitmap image, int size) {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		image.compress(Bitmap.CompressFormat.JPEG, 100, baos);// 璐ㄩ噺鍘嬬缉鏂规硶锛岃繖閲�100琛ㄧず涓嶅帇缂╋紝鎶婂帇缂╁悗鐨勬暟鎹瓨鏀惧埌baos涓�
+		image.compress(Bitmap.CompressFormat.JPEG, 100, baos);
 		int options = 100;
 		// Log.d("test3","src img size = "+(baos.toByteArray().length/ 1024));
 		while (baos.toByteArray().length / 1024 > size) {
 			options -= 10;//
 			baos.reset();//
-			image.compress(Bitmap.CompressFormat.JPEG, options, baos);// 杩欓噷鍘嬬缉options%锛屾妸鍘嬬缉鍚庣殑鏁版嵁瀛樻斁鍒癰aos涓�
+			image.compress(Bitmap.CompressFormat.JPEG, options, baos);
 		}
 		// Log.d("time","desy img size = "+(baos.toByteArray().length/ 1024));
-		ByteArrayInputStream isBm = new ByteArrayInputStream(baos.toByteArray());// 鎶婂帇缂╁悗鐨勬暟鎹産aos瀛樻斁鍒癇yteArrayInputStream涓�
-		Bitmap bitmap = BitmapFactory.decodeStream(isBm, null, null);// 鎶夿yteArrayInputStream鏁版嵁鐢熸垚鍥剧墖
+		ByteArrayInputStream isBm = new ByteArrayInputStream(baos.toByteArray());//
+		Bitmap bitmap = BitmapFactory.decodeStream(isBm, null, null);//
 		return bitmap;
 	}
 
@@ -325,12 +371,11 @@ public class PictureHelper {
 			e.printStackTrace();
 		}
 	}
-	
-	public static Bitmap drawableToBitmap(Drawable drawable){
+
+	public static Bitmap drawableToBitmap(Drawable drawable) {
 		BitmapDrawable bd = (BitmapDrawable) drawable;
-		Bitmap bm = bd.getBitmap();		
+		Bitmap bm = bd.getBitmap();
 		return bm;
 	}
-	
-	
+
 }

@@ -13,12 +13,12 @@ import java.util.List;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlSerializer;
-import com.mars.note.BackUpAndRestore;
-import com.mars.note.Config;
+import com.mars.note.BackUpActivity;
 import com.mars.note.LoginActivity;
 import com.mars.note.NoteApplication;
 import com.mars.note.R;
 import com.mars.note.ThemeSettings;
+import com.mars.note.api.Config;
 import com.mars.note.database.NoteDBField;
 import com.mars.note.database.NoteDataBaseManager;
 import com.mars.note.database.NoteRecord;
@@ -85,7 +85,7 @@ public class NoteSettingsMenu extends Fragment {
 						break;
 					case 1:
 						Intent intent1 = new Intent(mActivity,
-								BackUpAndRestore.class);
+								BackUpActivity.class);
 						mActivity.startActivity(intent1);
 						break;
 					case 2:
@@ -225,7 +225,7 @@ public class NoteSettingsMenu extends Fragment {
 				+ ".xml";
 		AlertDialog.Builder mDialog = new AlertDialog.Builder(mActivity);
 		mDialog.setMessage(mActivity.getString(R.string.export_xml_title,
-				fileName) + BackUpAndRestore.BACKUP_PATH + " ?");
+				fileName) + BackUpActivity.BACKUP_PATH + " ?");
 		mDialog.setPositiveButton(R.string.yes,
 				new DialogInterface.OnClickListener() {
 					@Override
@@ -246,7 +246,7 @@ public class NoteSettingsMenu extends Fragment {
 		XmlSerializer serializer = Xml.newSerializer();
 		StringWriter writer = new StringWriter();
 		try {
-			File file = new File(BackUpAndRestore.BACKUP_PATH, fileName);
+			File file = new File(BackUpActivity.BACKUP_PATH, fileName);
 			file.createNewFile();
 			FileOutputStream outputStream;
 			outputStream = new FileOutputStream(file);
@@ -407,7 +407,7 @@ public class NoteSettingsMenu extends Fragment {
 			if (addList.size() != 0) {
 				noteDBManager.addRecords(addList);
 			}
-			com.mars.note.Config.recent_needRefresh = true;
+			com.mars.note.api.Config.recent_needRefresh = true;
 			Toast.makeText(mActivity,
 					mActivity.getString(R.string.toast_success), 2000).show();
 		} catch (XmlPullParserException e) {

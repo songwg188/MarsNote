@@ -2,6 +2,9 @@ package com.mars.note;
 
 import java.lang.reflect.Field;
 
+import com.mars.note.api.Config;
+import com.mars.note.api.FragmentCallBack;
+import com.mars.note.api.Logg;
 import com.mars.note.fragment.CalendarFragment;
 import com.mars.note.fragment.RecentRecordsFragment;
 import com.mars.note.fragment.SearchFragment;

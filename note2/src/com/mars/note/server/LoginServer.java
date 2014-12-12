@@ -1,6 +1,7 @@
 package com.mars.note.server;
 
 import com.mars.note.R;
+import com.mars.note.api.BaseActivity;
 import com.mars.note.fragment.NoteSettingsMenu;
 
 import android.app.Activity;
@@ -18,7 +19,7 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 
-public class LoginServer extends Activity implements OnCheckedChangeListener, OnClickListener {
+public class LoginServer extends BaseActivity implements OnCheckedChangeListener, OnClickListener {
 	CheckBox cbx;
 	EditText user_name;
 	EditText password;
@@ -27,10 +28,6 @@ public class LoginServer extends Activity implements OnCheckedChangeListener, On
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		getWindow().requestFeature(Window.FEATURE_ACTION_BAR_OVERLAY); //Ðü¸¡Actionbar 20141202
-		
-		this.getActionBar().setDisplayHomeAsUpEnabled(true);
-		this.getActionBar().setDisplayShowHomeEnabled(false);
 		
 		setContentView(R.layout.activity_login_server);
 		cbx = (CheckBox)this.findViewById(R.id.show_pwd);

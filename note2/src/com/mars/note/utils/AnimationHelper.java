@@ -1,6 +1,6 @@
 package com.mars.note.utils;
 
-import com.mars.note.Config;
+import com.mars.note.api.Config;
 
 import android.animation.Animator;
 import android.animation.AnimatorSet;

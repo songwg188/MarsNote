@@ -2,6 +2,8 @@ package com.mars.note;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+
+import com.mars.note.api.BaseActivity;
 import com.mars.note.fragment.NoteSettingsMenu;
 import com.mars.note.utils.PictureHelper;
 import android.app.ActionBar;
@@ -24,28 +26,21 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageView;
 import android.widget.ListView;
 
-public class NoteSettings extends Activity {
-	ActionBar mActionBar;
+public class NoteSettings extends BaseActivity {
 	ListView mListView;
 	FragmentManager mFragmentManager;
 	FragmentTransaction mFragmentTransaction;
 	NoteSettingsMenu mNoteSettingsMenu;
 	public static final int BACKUP_RESTORE = 1;
-	BackUpAndRestore mBackUpAndRestore;
+	BackUpActivity mBackUpAndRestore;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
-		getWindow().requestFeature(Window.FEATURE_ACTION_BAR_OVERLAY); //Ðü¸¡Actionbar 20141202
-		
-		mActionBar = getActionBar();
-		mActionBar.setDisplayShowHomeEnabled(false);
-		mActionBar.setDisplayHomeAsUpEnabled(true);
 		this.setContentView(R.layout.activity_note_settings);
 		mFragmentManager = this.getFragmentManager();
 		mNoteSettingsMenu = new NoteSettingsMenu();
-		mBackUpAndRestore = new BackUpAndRestore();
+		mBackUpAndRestore = new BackUpActivity();
 		mFragmentTransaction = mFragmentManager.beginTransaction();
 		mFragmentTransaction.add(R.id.root, mNoteSettingsMenu,
 				"mNoteSettingsMenu").commit();

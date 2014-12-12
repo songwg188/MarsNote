@@ -6,7 +6,9 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import com.mars.note.BackupDoc;
+
+import com.mars.note.api.BackupDoc;
+
 import android.util.Log;
 
 public class FileHelper {

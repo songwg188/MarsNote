@@ -12,4 +12,5 @@ public class NoteRecord {
 	public String minute;
 	public String second;
 	public String imgpath;
+	public byte[] imageSpanInfos; //20141211 ArrayList<ImageSpan>的序列化数组
 }

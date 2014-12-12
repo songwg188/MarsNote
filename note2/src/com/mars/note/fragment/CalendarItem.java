@@ -5,9 +5,9 @@ import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 import com.mars.note.Editor;
-import com.mars.note.FragmentCallBack;
 import com.mars.note.Main;
 import com.mars.note.R;
+import com.mars.note.api.FragmentCallBack;
 import com.mars.note.database.NoteDataBaseManager;
 import com.mars.note.database.NoteRecord;
 import com.mars.note.views.NoteCalendar;
@@ -28,6 +28,11 @@ import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.TextView;
 
+/**
+ * 代表每个月份的Fragment
+ * @author mars
+ *
+ */
 public class CalendarItem extends Fragment implements
 		NoteCalendar.ChangeDateListener {
 	private static final String TAG = "CalendarItem";

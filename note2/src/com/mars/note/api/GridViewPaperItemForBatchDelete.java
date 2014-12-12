@@ -1,4 +1,4 @@
-package com.mars.note.fragment;
+package com.mars.note.api;
 public class GridViewPaperItemForBatchDelete {
 	public int index;
 	public int position;

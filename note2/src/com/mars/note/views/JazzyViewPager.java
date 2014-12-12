@@ -9,13 +9,16 @@ import android.content.res.TypedArray;
 import android.graphics.Camera;
 import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.Rect;
 import android.os.Build;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v4.view.ViewPager.LayoutParams;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.TranslateAnimation;
 
 import com.mars.note.R;
 import com.nineoldandroids.view.ViewHelper;
@@ -36,17 +39,27 @@ public class JazzyViewPager extends ViewPager {
 	private static final float ZOOM_MAX = 0.5f;
 	private static final float ROT_MAX = 15.0f;
 
-	public enum TransitionEffect {Alpha,
-		Standard, Tablet, CubeIn, CubeOut, FlipVertical, FlipHorizontal, Stack, ZoomIn, ZoomOut, RotateUp, RotateDown, Accordion
+	public enum TransitionEffect {
+		Alpha, Standard, Tablet, CubeIn, CubeOut, FlipVertical, FlipHorizontal, Stack, ZoomIn, ZoomOut, RotateUp, RotateDown, Accordion
 	}
 
 	private static final boolean API_11;
 	static {
 		API_11 = Build.VERSION.SDK_INT >= 11;
 	}
-
+	private Rect mRect = new Rect();// 用来记录初始位置
+	private int pagerCount = 0;
+	private int currentItem = 0;
+	private boolean handleDefault = true;
+	private static final float RATIO = 0.5f;// 摩擦系数
+	private static final float SCROLL_WIDTH = 30f;
 	float preX = 0;
-	
+	private boolean isSpringback = false;
+
+	public void setSpringBack(boolean b) {
+		isSpringback = b;
+	}
+
 	public JazzyViewPager(Context context) {
 		this(context, null);
 	}
@@ -147,19 +160,16 @@ public class JazzyViewPager extends ViewPager {
 	public boolean onInterceptTouchEvent(MotionEvent ev) {
 		if (isTouchable) {
 			boolean result = super.onInterceptTouchEvent(ev);
-			if(ev.getAction() == MotionEvent.ACTION_DOWN){
+			if (ev.getAction() == MotionEvent.ACTION_DOWN) {
 				preX = ev.getX();
-//				Log.d("touch","ACTION_DOWN preX = "+preX);
-			}else if(ev.getAction() == MotionEvent.ACTION_MOVE){
-				if(Math.abs(ev.getX() - preX) > 2){
-//					Log.d("touch","ev.getX() = "+ev.getX()+",preX = "+preX);
+			} else if (ev.getAction() == MotionEvent.ACTION_MOVE) {
+				if (Math.abs(ev.getX() - preX) > 4) {
 					return true;
-				}else{
+				} else {
 					preX = ev.getX();
 				}
 			}
 			return result;
-//			return mEnabled ? super.onInterceptTouchEvent(arg0) : false;
 		}
 		return false;
 	}
@@ -438,15 +448,16 @@ public class JazzyViewPager extends ViewPager {
 				ViewHelper.setScaleX(right, mScale);
 				ViewHelper.setScaleY(right, mScale);
 				ViewHelper.setTranslationX(right, mTrans);
-				android.util.Log.d("anim","mScale = "+((mScale-0.5F)*2));
-				ViewHelper.setAlpha(right, ((mScale-0.5F)*2)); //added by mars_ma
+				android.util.Log.d("anim", "mScale = " + ((mScale - 0.5F) * 2));
+				ViewHelper.setAlpha(right, ((mScale - 0.5F) * 2)); // added by
+																	// mars_ma
 			}
 			if (left != null) {
 				left.bringToFront();
 			}
 		}
 	}
-	
+
 	protected void animateAlpha(View left, View right, float positionOffset,
 			int positionOffsetPixels) {
 		if (mState != State.IDLE) {
@@ -454,14 +465,15 @@ public class JazzyViewPager extends ViewPager {
 				manageLayer(right, true);
 				mScale = (1 - SCALE_MAX) * positionOffset + SCALE_MAX;
 				mTrans = -getWidth() - getPageMargin() + positionOffsetPixels;
-//				ViewHelper.setScaleX(right, mScale);
-//				ViewHelper.setScaleY(right, mScale);
-//				ViewHelper.setTranslationX(right, mTrans);
-//				android.util.Log.d("anim","mScale = "+((mScale-0.5F)*2));
-				ViewHelper.setAlpha(right, ((mScale-0.5F)*2)); //added by mars_ma
+				// ViewHelper.setScaleX(right, mScale);
+				// ViewHelper.setScaleY(right, mScale);
+				// ViewHelper.setTranslationX(right, mTrans);
+				// android.util.Log.d("anim","mScale = "+((mScale-0.5F)*2));
+				ViewHelper.setAlpha(right, ((mScale - 0.5F) * 2)); // added by
+																	// mars_ma
 			}
 			if (left != null) {
-//				ViewHelper.setAlpha(left, (1-((mScale-0.5F)*2)));
+				// ViewHelper.setAlpha(left, (1-((mScale-0.5F)*2)));
 				left.bringToFront();
 			}
 		}
@@ -643,11 +655,93 @@ public class JazzyViewPager extends ViewPager {
 	}
 
 	@Override
-	public boolean onTouchEvent(MotionEvent ev) {
+	public boolean onTouchEvent(MotionEvent arg0) {
 		if (isTouchable) {
-			return super.onTouchEvent(ev);
+			if (isSpringback) {
+				switch (arg0.getAction()) {
+				case MotionEvent.ACTION_UP:
+					onTouchActionUp();
+					break;
+				case MotionEvent.ACTION_MOVE:
+					// 当时滑到第一项或者是最后一项的时候。
+					if ((currentItem == 0 || currentItem == pagerCount - 1)) {
+						float nowX = arg0.getX();
+						float offset = nowX - preX;
+						preX = nowX;
+						if (currentItem == 0) {
+							if (offset > SCROLL_WIDTH) {// 手指滑动的距离大于设定值
+								whetherConditionIsRight(offset);
+							} else if (!handleDefault) {// 这种情况是已经出现缓冲区域了，手指慢慢恢复的情况
+								if (getLeft() + (int) (offset * RATIO) >= mRect.left) {
+									layout(getLeft() + (int) (offset * RATIO),
+											getTop(), getRight()
+													+ (int) (offset * RATIO),
+											getBottom());
+								}
+							}
+						} else {
+							if (offset < -SCROLL_WIDTH) {
+								whetherConditionIsRight(offset);
+							} else if (!handleDefault) {
+								if (getRight() + (int) (offset * RATIO) <= mRect.right) {
+									layout(getLeft() + (int) (offset * RATIO),
+											getTop(), getRight()
+													+ (int) (offset * RATIO),
+											getBottom());
+								}
+							}
+						}
+					} else {
+						handleDefault = true;
+					}
+
+					if (!handleDefault) {
+						return true;
+					}
+					break;
+
+				default:
+					break;
+				}
+			}
+			return super.onTouchEvent(arg0);
 		}
 		return false;
+	}
+
+	// 设置总共有多少页,请记得调用它
+	public void setpagerCount(int pagerCount) {
+		this.pagerCount = pagerCount;
+	}
+
+	// 这是当前是第几页，请在onPageSelect方法中调用它。
+	public void setCurrentIndex(int currentItem) {
+		this.currentItem = currentItem;
+	}
+
+	private void whetherConditionIsRight(float offset) {
+		if (mRect.isEmpty()) {
+			mRect.set(getLeft(), getTop(), getRight(), getBottom());
+		}
+		handleDefault = false;
+		layout(getLeft() + (int) (offset * RATIO), getTop(), getRight()
+				+ (int) (offset * RATIO), getBottom());
+	}
+
+	private void onTouchActionUp() {
+		if (!mRect.isEmpty()) {
+			recoveryPosition();
+		}
+	}
+
+	private void recoveryPosition() {
+		TranslateAnimation ta = null;
+		ta = new TranslateAnimation(getLeft(), mRect.left, 0, 0);
+		ta.setDuration(300);
+		startAnimation(ta);
+		layout(mRect.left, mRect.top, mRect.right, mRect.bottom);
+		mRect.setEmpty();
+		handleDefault = true;
 	}
 
 }

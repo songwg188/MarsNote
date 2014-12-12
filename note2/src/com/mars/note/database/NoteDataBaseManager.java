@@ -5,9 +5,10 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import com.mars.note.Config;
 import com.mars.note.Editor;
 import com.mars.note.R;
+import com.mars.note.api.Config;
+
 import android.appwidget.AppWidgetManager;
 import android.content.ContentValues;
 import android.content.Context;
@@ -32,10 +33,20 @@ public class NoteDataBaseManager {
 		return db.rawQuery(sql, null);
 	}
 
-	public void closeDB() {
-		db.close();
+	public void openDB() {
+		mRecordsDBHelper = new NoteDatabaseHelper(mContext);
+		db = mRecordsDBHelper.getWritableDatabase();
 	}
 
+	public void closeDB() {
+		db.close();
+		db = null;
+		mRecordsDBHelper = null;
+	}
+
+	/**
+	 * 清空widget表的所有关联，并刷新桌面
+	 */
 	public synchronized void clearWidgetsRelations() {
 		db.execSQL("DELETE FROM " + NoteDBField.WIDGETS_TABLE_NAME);
 		Intent intent = new Intent("com.mars.note.widget.clearall");
@@ -122,7 +133,6 @@ public class NoteDataBaseManager {
 
 	@SuppressWarnings("deprecation")
 	public synchronized long addRecord(NoteRecord nr) {
-		Long begin = System.currentTimeMillis();
 		ContentValues cv = new ContentValues();
 		cv.put(NoteDBField.TITLE, nr.title);
 		cv.put(NoteDBField.ID, nr.id);
@@ -135,7 +145,8 @@ public class NoteDataBaseManager {
 		cv.put(NoteDBField.MINUTE, nr.minute);
 		cv.put(NoteDBField.SECOND, nr.second);
 		cv.put(NoteDBField.IMGPATH, nr.imgpath);
-		
+		cv.put(NoteDBField.IMAGESPANINFOS, nr.imageSpanInfos);
+
 		long returnID = -1;
 
 		try {
@@ -258,7 +269,6 @@ public class NoteDataBaseManager {
 	}
 
 	public synchronized List<NoteRecord> queryAllRecords() {
-		Long before = System.currentTimeMillis();
 		ArrayList<NoteRecord> recordInfos = new ArrayList<NoteRecord>();
 		Cursor c = getCursor("SELECT * FROM " + NoteDBField.TABLE_NAME
 				+ " ORDER BY " + NoteDBField.TIME + " DESC");
@@ -279,7 +289,6 @@ public class NoteDataBaseManager {
 		}
 		c.close();
 		// Collections.reverse(recordInfos);
-		Long after = System.currentTimeMillis();
 		return recordInfos;
 	}
 
@@ -300,6 +309,7 @@ public class NoteDataBaseManager {
 			nr.minute = c.getString(c.getColumnIndex(NoteDBField.MINUTE));
 			nr.second = c.getString(c.getColumnIndex(NoteDBField.SECOND));
 			nr.imgpath = c.getString(c.getColumnIndex(NoteDBField.IMGPATH));
+			nr.imageSpanInfos = c.getBlob(c.getColumnIndex(NoteDBField.IMAGESPANINFOS));
 		}
 		c.close();
 		return nr;
@@ -343,17 +353,35 @@ public class NoteDataBaseManager {
 	}
 
 	public synchronized void updateRecord(NoteRecord nr) {
-		db.execSQL("UPDATE " + NoteDBField.TABLE_NAME + " SET "
-				+ NoteDBField.TITLE + " = '" + nr.title + "', "
-				+ NoteDBField.IMGPATH + " = '" + nr.imgpath + "', "
-				+ NoteDBField.TIME + " = '" + nr.time + "', "
-				+ NoteDBField.YEAR + " = '" + nr.year + "', "
-				+ NoteDBField.MONTH + " = '" + nr.month + "', "
-				+ NoteDBField.DAY + " = '" + nr.day + "', " + NoteDBField.HOUR
-				+ " = '" + nr.hour + "', " + NoteDBField.MINUTE + " = '"
-				+ nr.minute + "', " + NoteDBField.SECOND + " = '" + nr.second
-				+ "', " + NoteDBField.CONTENT + " = '" + nr.content + "'"
-				+ " WHERE " + NoteDBField.ID + " = '" + nr.id + "'");
+//		db.execSQL("UPDATE " + NoteDBField.TABLE_NAME + " SET "
+//				+ NoteDBField.TITLE + " = '" + nr.title + "', "
+//				+ NoteDBField.IMGPATH + " = '" + nr.imgpath + "', "
+//				+ NoteDBField.TIME + " = '" + nr.time + "', "
+//				+ NoteDBField.YEAR + " = '" + nr.year + "', "
+//				+ NoteDBField.MONTH + " = '" + nr.month + "', "
+//				+ NoteDBField.DAY + " = '" + nr.day + "', " + NoteDBField.HOUR
+//				+ " = '" + nr.hour + "', " + NoteDBField.MINUTE + " = '"
+//				+ nr.minute + "" 
+//				+ "', " + NoteDBField.SECOND + " = '" + nr.second
+//				+ "', " + NoteDBField.CONTENT + " = '" + nr.content + "'"
+//				+ "', " + NoteDBField.IMAGESPANINFOS + " = '" + nr.imageSpanInfos.toString() + "'"
+//				+ " WHERE " + NoteDBField.ID + " = '" + nr.id + "'");
+		//bug 不能更新blog 20141211
+		ContentValues cv = new ContentValues();
+		cv.put(NoteDBField.TITLE, nr.title);
+		cv.put(NoteDBField.ID, nr.id);
+		cv.put(NoteDBField.CONTENT, nr.content);
+		cv.put(NoteDBField.TIME, nr.time);
+		cv.put(NoteDBField.YEAR, nr.year);
+		cv.put(NoteDBField.MONTH, nr.month);
+		cv.put(NoteDBField.DAY, nr.day);
+		cv.put(NoteDBField.HOUR, nr.hour);
+		cv.put(NoteDBField.MINUTE, nr.minute);
+		cv.put(NoteDBField.SECOND, nr.second);
+		cv.put(NoteDBField.IMGPATH, nr.imgpath);
+		cv.put(NoteDBField.IMAGESPANINFOS, nr.imageSpanInfos);
+		String[] args = {nr.id};
+		db.update(NoteDBField.TABLE_NAME, cv, NoteDBField.ID+"=?",args); 
 		refreshWidgetCollections();
 	}
 

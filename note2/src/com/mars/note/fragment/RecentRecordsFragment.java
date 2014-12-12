@@ -5,21 +5,26 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.locks.ReentrantLock;
+
 import com.mars.note.Editor;
-import com.mars.note.Config;
-import com.mars.note.FragmentCallBack;
-import com.mars.note.Logg;
 import com.mars.note.Main;
 import com.mars.note.NoteApplication;
 import com.mars.note.NoteSettings;
 import com.mars.note.R;
+import com.mars.note.api.Config;
+import com.mars.note.api.FragmentCallBack;
+import com.mars.note.api.GridViewPaperItemForBatchDelete;
+import com.mars.note.api.Logg;
 import com.mars.note.database.NoteDataBaseManager;
 import com.mars.note.database.NoteRecord;
 import com.mars.note.fragment.GridViewPaperItem.CallBack;
 import com.mars.note.utils.AnimationHelper;
 import com.mars.note.utils.PictureHelper;
+import com.mars.note.utils.Util;
 import com.mars.note.views.BounceListView;
 import com.mars.note.views.JazzyViewPager;
 import com.mars.note.views.JazzyViewPager.TransitionEffect;
@@ -68,11 +73,16 @@ import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+/**
+ * 显示最近的记录
+ * @author mars
+ *
+ */
 public class RecentRecordsFragment extends Fragment implements
 		OnScrollListener, CallBack {
 	public static final String TAG = "RecentRecordsFragment";
 	private Activity mActivity;
-//	private ViewGroup titleBar;
+	// private ViewGroup titleBar;
 	private ImageButton titlebar_add_note_btn; // 添加新笔记按钮
 	private ImageButton titlebar_overflow_options; // 显示菜单按钮
 	private ImageButton titlebar_batch_delete_imgbtn; // 批量删除按钮
@@ -83,16 +93,16 @@ public class RecentRecordsFragment extends Fragment implements
 	private TextView textview_empty; // 空文本
 	private ProgressBar mProgressBar;
 	private JazzyViewPager mGridPager;
-	
+
 	// listener
 	private OnCheckedChangeListener mNoteCheckBoxListener;
 	private OnClickListener mOnClickListener;
 	private NoteListAdapter noteAdapter;
 	// db manager
 	private NoteDataBaseManager noteDBManager;
-	static List<NoteRecord> list_note_data; // 数据源
+	private List<NoteRecord> list_note_data; // 数据源
 	private ArrayList<ListItemCheckBoxStatus> item_checkbox_status;
-	private static LruCache<String, Bitmap> mBitmapCache;
+	private LruCache<String, Bitmap> mBitmapCache;
 	private int single_delete_position;
 	public static Boolean isDeleteUIShown = false;
 	private int currentPage = 1;
@@ -102,7 +112,7 @@ public class RecentRecordsFragment extends Fragment implements
 	private boolean isFirstLoaded = true;
 	private static final int queryPageNum = 20;
 	private static final int MaxPageNum = 50;
-	
+
 	private PopupWindow pop;
 	private View popView, root;
 	private String[] date_title;
@@ -111,13 +121,15 @@ public class RecentRecordsFragment extends Fragment implements
 	private boolean flag = true;
 	private boolean delayToRefresh = false;
 	public static final int thread_num = 12;
-	private static ExecutorService executors;
-	
+	private ExecutorService executors;
+
 	private FragmentStatePagerAdapter mGridPagerAdapter;
-	private ArrayList<com.mars.note.fragment.GridViewPaperItemForBatchDelete> mGridViewBatchDeleteCache;
+	private ArrayList<com.mars.note.api.GridViewPaperItemForBatchDelete> mGridViewBatchDeleteCache;
 	private int screenHeight, screenWidth;
 	private float DPI;
 	private boolean firstResume = true; // 20111201 bug 第一次调整垃圾桶setY 7 导致下移
+	private ConcurrentHashMap<String, Boolean> mConcurentMap;
+	private ReentrantLock mLock;
 
 	private void setCallBack(FragmentCallBack mCallBack) {
 		this.mCallBack = mCallBack;
@@ -145,23 +157,29 @@ public class RecentRecordsFragment extends Fragment implements
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		Logg.D(TAG + " onCreate");
-
+		
 		initDBManager();
 		initListener();
 		initExecutingDialog();
+		
 		mBitmapCache = NoteApplication.getBitmapCache();
+		mConcurentMap =  new ConcurrentHashMap<String, Boolean>();//保存线程工作状态
+		mLock = new ReentrantLock();//20141212 公平锁
+		
 		executors = NoteApplication.getExecutors();
 		if (executors == null) {
+//			throw new NullPointerException("executors == null");
 			executors = Executors
 					.newFixedThreadPool(RecentRecordsFragment.thread_num);
 			NoteApplication.setExecutors(executors);
 		}
-
+		
 		DisplayMetrics dm = new DisplayMetrics();
 		getActivity().getWindowManager().getDefaultDisplay().getMetrics(dm);
 		screenHeight = dm.heightPixels;
 		screenWidth = dm.widthPixels;
 		DPI = dm.density;
+//		Logg.D("DPI "+DPI);
 
 	}
 
@@ -189,9 +207,8 @@ public class RecentRecordsFragment extends Fragment implements
 	private void initGridPaper(View v) {
 		mGridPager = (JazzyViewPager) v.findViewById(R.id.note_grid_paper);
 		mGridPager.setTouchable(true);
-//		mGridPager.setSpringBack(true);
+		mGridPager.setSpringBack(true);
 		mGridPager.setTransitionEffect(TransitionEffect.RotateDown);
-		// mGridPager.setScrollable(true);
 		Field mScroller = null;
 		ViewPagerScroller scroller = null;
 		try {
@@ -226,7 +243,7 @@ public class RecentRecordsFragment extends Fragment implements
 	}
 
 	private void initTitleBarView(View v) {
-//		titleBar = (ViewGroup) v.findViewById(R.id.titlebar);
+		// titleBar = (ViewGroup) v.findViewById(R.id.titlebar);
 		titlebar_add_note_btn = (ImageButton) v
 				.findViewById(R.id.titlebar_add_note_btn);
 		titlebar_batch_delete_imgbtn = (ImageButton) v
@@ -509,21 +526,20 @@ public class RecentRecordsFragment extends Fragment implements
 			}
 			mProgressBar.setVisibility(View.GONE);
 			isFirstLoaded = false;
-			com.mars.note.Config.recent_needRefresh = false;
+			com.mars.note.api.Config.recent_needRefresh = false;
 			flag = true;
 		}
 	}
 
 	@SuppressLint("NewApi")
 	private void setGridPaper() {
-		// long begin = System.currentTimeMillis();
 		if (records_count == 0) {
 			this.mGridPager.setVisibility(View.GONE);
 		} else {
 			this.mGridPager.setVisibility(View.VISIBLE);
 
 			if (mGridViewBatchDeleteCache == null) {
-				mGridViewBatchDeleteCache = new ArrayList<com.mars.note.fragment.GridViewPaperItemForBatchDelete>();
+				mGridViewBatchDeleteCache = new ArrayList<com.mars.note.api.GridViewPaperItemForBatchDelete>();
 			}
 			mGridViewBatchDeleteCache.clear();
 			int pageNum = records_count / 6;
@@ -573,7 +589,7 @@ public class RecentRecordsFragment extends Fragment implements
 				@Override
 				public void onPageSelected(int pos) {
 					// TODO Auto-generated method stub
-//					mGridPager.setCurrentIndex(pos);
+					mGridPager.setCurrentIndex(pos);
 				}
 
 				@Override
@@ -691,7 +707,7 @@ public class RecentRecordsFragment extends Fragment implements
 		if (flag) {
 			flag = false;
 			if (isFirstLoaded == true
-					|| com.mars.note.Config.recent_needRefresh) {
+					|| com.mars.note.api.Config.recent_needRefresh) {
 				this.textview_empty.setVisibility(View.GONE);
 				this.mProgressBar.setVisibility(View.VISIBLE);
 				listView_myNote.setVisibility(View.GONE);
@@ -840,6 +856,9 @@ public class RecentRecordsFragment extends Fragment implements
 						img.setVisibility(View.VISIBLE);
 						img.setImageBitmap(item.bm);
 					} else {
+						if (mConcurentMap.get(path) == null)
+							mConcurentMap.put(path, false);
+
 						final Handler handler = new Handler() {
 							@Override
 							public void handleMessage(Message msg) {
@@ -847,6 +866,13 @@ public class RecentRecordsFragment extends Fragment implements
 									if (((Integer) img.getTag()).intValue() == item.position) {
 										img.setVisibility(View.VISIBLE);
 										img.setImageBitmap(item.bm);
+										Logg.D(path + " is load new");
+									}
+								} else if (msg.what == 2) {
+									if (((Integer) img.getTag()).intValue() == item.position) {
+										img.setVisibility(View.VISIBLE);
+										img.setImageBitmap(item.bm);
+										Logg.D(path + " is load from cache");
 									}
 								}
 							}
@@ -854,17 +880,50 @@ public class RecentRecordsFragment extends Fragment implements
 						Thread thread = new Thread() {
 							@Override
 							public void run() {
-								if (path != null && (!path.equals("null"))
-										&& (!"".equals(path))) {
-									item.bm = PictureHelper.getCropImage(path,
-											400, true, 100, mActivity, 7, true);
-									mBitmapCache.put(path, item.bm);
+								mLock.lock();
+								if (mConcurentMap.get(path) == false) {
+									// Logg.D("mConcurentMap.get(path) = "+mConcurentMap.get(path));
+									mConcurentMap.put(path, true);
+									mLock.unlock();
+//									Logg.D("mConcurentMap.get(path) = "
+//											+ mConcurentMap.get(path));
+									// Logg.D(path + " is locked");
+									if (path != null && (!path.equals("null"))
+											&& (!"".equals(path))) {
+										item.bm = PictureHelper.getCropImage(
+												path, 400, true, 100,
+												mActivity, 7, true);
+										mBitmapCache.put(path, item.bm);
+										mConcurentMap.put(path, false);
+
+									} else {
+										item.bm = null;
+										mConcurentMap.put(path, false);
+									}
+									// Logg.D("mConcurentMap.get(path) = "+mConcurentMap.get(path));
+									Message msg = new Message();
+									msg.what = 1;
+									handler.sendMessage(msg);
+									// Logg.D(path + " is unlocked");
 								} else {
-									item.bm = null;
+									mLock.unlock();
+									while (true) {
+										if (mConcurentMap.get(path) == false) {
+											// Logg.D("other need break cycle");
+											break;
+										}
+									}
+									// Logg.D("other go out cycle");
+									if (mBitmapCache.get(path) != null) {
+										item.bm = mBitmapCache.get(path);
+										Message msg = new Message();
+										msg.what = 2;
+										handler.sendMessage(msg);
+									} else {
+										throw new NullPointerException(
+												"(mBitmapCache.get(path) == null!");
+									}
 								}
-								Message msg = new Message();
-								msg.what = 1;
-								handler.sendMessage(msg);
 							}
 						};
 						executors.execute(thread);
@@ -873,7 +932,10 @@ public class RecentRecordsFragment extends Fragment implements
 					if (mBitmapCache.get(path) != null) {
 						holder.img.setImageBitmap(mBitmapCache.get(path));
 						holder.img.setVisibility(View.VISIBLE);
+						Logg.D(path + " is from cache");
 					} else {
+						throw new NullPointerException(
+								"(mBitmapCache.get(path) == null!");
 					}
 				}
 			} else {
@@ -986,7 +1048,7 @@ public class RecentRecordsFragment extends Fragment implements
 			if (result > pageNum) {
 				pageNum++;
 			}
-//			mGridPager.setpagerCount(pageNum);
+			mGridPager.setpagerCount(pageNum);
 			return pageNum;
 		}
 	}
@@ -1280,6 +1342,7 @@ public class RecentRecordsFragment extends Fragment implements
 		default:
 			return null;
 		}
+
 	}
 
 	@Override

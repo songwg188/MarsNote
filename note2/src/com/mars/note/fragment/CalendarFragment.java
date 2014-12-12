@@ -3,12 +3,12 @@ package com.mars.note.fragment;
 import java.util.Calendar;
 import java.util.List;
 import com.mars.note.Editor;
-import com.mars.note.Config;
-import com.mars.note.FragmentCallBack;
 import com.mars.note.Main;
 import com.mars.note.NoteApplication;
 import com.mars.note.NoteSettings;
 import com.mars.note.R;
+import com.mars.note.api.Config;
+import com.mars.note.api.FragmentCallBack;
 import com.mars.note.database.NoteDataBaseManager;
 import com.mars.note.database.NoteRecord;
 import com.mars.note.utils.PictureHelper;
@@ -43,6 +43,11 @@ import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+/**
+ * 显示日历
+ * @author mars
+ *
+ */
 public class CalendarFragment extends Fragment implements OnClickListener,
 		ViewPager.OnPageChangeListener, CalendarItem.CallBack {
 	private static final String TAG = "CalendarFragment";

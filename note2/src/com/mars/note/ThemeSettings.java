@@ -1,6 +1,8 @@
 package com.mars.note;
 
 import com.mars.note.R;
+import com.mars.note.api.BaseActivity;
+import com.mars.note.api.Config;
 import com.mars.note.utils.PictureHelper;
 import com.mars.note.views.BounceViewPager;
 
@@ -28,7 +30,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-public class ThemeSettings extends Activity implements OnClickListener {
+public class ThemeSettings extends BaseActivity implements OnClickListener {
 	String TAG = "ThemeSettings";
 	Activity mActivity;
 	BounceViewPager mViewPager;
@@ -39,15 +41,9 @@ public class ThemeSettings extends Activity implements OnClickListener {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
-		getWindow().requestFeature(Window.FEATURE_ACTION_BAR_OVERLAY); //悬浮Actionbar 20141202
-		
 		inflater = (LayoutInflater) this
 				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		mActivity = this;
-		this.getActionBar().setDisplayHomeAsUpEnabled(true);
-		this.getActionBar().setDisplayShowHomeEnabled(false);
-		
 		this.setContentView(R.layout.activity_theme_settings);
 		mViewPager = (BounceViewPager) this.findViewById(R.id.viewpager);
 		mViewPager.setOffscreenPageLimit(3);
@@ -60,13 +56,6 @@ public class ThemeSettings extends Activity implements OnClickListener {
 	private void initThemes() {
 		Drawable d1 = this.getResources().getDrawable(R.drawable.theme1_preview);
 		Drawable d2 = this.getResources().getDrawable(R.drawable.theme2_preview);
-		//20141204此处处理图片加边缘，会有内存溢出的风险
-//		Bitmap t1 = PictureHelper.drawableToBitmap(d1);
-//		Bitmap t2 = PictureHelper.drawableToBitmap(d2);
-//		t1 = PictureHelper.addEdge(t1, mActivity, 8);
-//		t2 = PictureHelper.addEdge(t2, mActivity, 8);
-//		d1 = new BitmapDrawable (mActivity.getResources(), t1);
-//		d2 = new BitmapDrawable (mActivity.getResources(), t2);
 		
 		
 		themeViews = new View[2];

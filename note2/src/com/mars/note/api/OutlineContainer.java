@@ -1,7 +1,7 @@
-package com.mars.note.views;
+package com.mars.note.api;
 
 import com.mars.note.R;
-import com.mars.note.utils.Util;
+import com.mars.note.views.JazzyViewPager;
 
 import android.content.Context;
 import android.graphics.Canvas;

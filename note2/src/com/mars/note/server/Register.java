@@ -15,8 +15,9 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.mars.note.BackUpAndRestore;
+import com.mars.note.BackUpActivity;
 import com.mars.note.R;
+import com.mars.note.api.BaseActivity;
 import com.mars.note.utils.PictureHelper;
 
 import android.app.Activity;
@@ -34,7 +35,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-public class Register extends Activity implements OnClickListener {
+public class Register extends BaseActivity implements OnClickListener {
 	private static final String url = "http://192.168.1.100:8080/MarsNoteServer/Register";
 	private ImageView head_photo;
 	private final int SELECT_PIC_KITKAT = 0;
@@ -45,12 +46,7 @@ public class Register extends Activity implements OnClickListener {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
-		getWindow().requestFeature(Window.FEATURE_ACTION_BAR_OVERLAY); //Ğü¸¡Actionbar 20141202
-		
 		setContentView(R.layout.activity_register);
-		this.getActionBar().setDisplayHomeAsUpEnabled(true);
-		this.getActionBar().setDisplayShowHomeEnabled(false);
 		head_photo = (ImageView) this.findViewById(R.id.head_photo);
 		head_photo.setOnClickListener(this);
 		
@@ -124,10 +120,10 @@ public class Register extends Activity implements OnClickListener {
 		Intent intent = new Intent("com.android.camera.action.CROP");
 		intent.setDataAndType(uri, "image/*");
 		intent.putExtra("crop", "true");
-		// aspectX aspectY ÊÇ¿í¸ßµÄ±ÈÀı
+		// aspectX aspectY æ˜¯å®½é«˜çš„æ¯”ä¾‹
 		intent.putExtra("aspectX", 1);
 		intent.putExtra("aspectY", 1);
-		// outputX outputY ÊÇ²Ã¼ôÍ¼Æ¬¿í¸ß
+		// outputX outputY æ˜¯è£å‰ªå›¾ç‰‡å®½é«˜
 		intent.putExtra("outputX", 300);
 		intent.putExtra("outputY", 300);
 		intent.putExtra("return-data", true);
@@ -145,11 +141,11 @@ public class Register extends Activity implements OnClickListener {
 	}
 
 	private void saveBitmap(Bitmap bm) {
-		File exportDir = new File(BackUpAndRestore.BACKUP_PATH);
+		File exportDir = new File(BackUpActivity.BACKUP_PATH);
 		if (!exportDir.exists()) {
 			exportDir.mkdirs();
 		}
-		PictureHelper.saveBitmapToPath(bm, BackUpAndRestore.BACKUP_PATH+"head_photo.png");
+		PictureHelper.saveBitmapToPath(bm, BackUpActivity.BACKUP_PATH+"head_photo.png");
 	}
 
 	private boolean isEmail(String email) {
@@ -215,7 +211,7 @@ public class Register extends Activity implements OnClickListener {
 	}
 	private void uploadJSON(JSONObject jsonObj){
 		HttpPost request = new HttpPost(url);		
-		// °ó¶¨µ½ÇëÇó Entry
+		// ç»‘å®šåˆ°è¯·æ±‚ Entry
 		StringEntity se;
 		try {
 			se = new StringEntity(jsonObj.toString(),"UTF-8");
