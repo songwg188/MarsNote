@@ -1,0 +1,60 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/settings_listitem_bg"
+    android:focusable="false"
+    android:paddingLeft="10dp"
+    android:paddingRight="10dp"
+    tools:context=".EditorActivity" >
+
+    <ImageView
+        android:id="@+id/pic"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="15dp"
+        android:src="@drawable/ic_menu_save" />
+
+    <TextView
+        android:id="@+id/file_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="10dp"
+        android:layout_toRightOf="@+id/pic" />
+
+    <TextView
+        android:id="@+id/file_description"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/file_name"
+        android:layout_marginLeft="10dp"
+        android:layout_toRightOf="@+id/pic" />
+
+    <ImageButton
+        android:id="@+id/delete_file"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:padding="12dp"
+        android:scaleType="fitCenter"
+        android:layout_alignParentTop="true"
+        android:layout_marginRight="2dp"
+        android:layout_marginTop="5dp"
+        android:layout_toLeftOf="@+id/restore_file"
+        android:background="@drawable/dialog_btn"
+        android:src="@drawable/delete_bak" />
+
+    <ImageButton
+        android:id="@+id/restore_file"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="5dp"
+        android:background="@drawable/dialog_btn"
+        android:src="@drawable/ic_menu_revert" />
+
+</RelativeLayout>

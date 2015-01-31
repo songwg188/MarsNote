@@ -9,6 +9,8 @@ public class Config {
 	public static boolean loadmore_sync = true;
 	public static final int maxCountEachDay = 100;
 	public static int maxShownCount = 1000;
+	public static boolean animation_finished = true; //20141125 
 	
-	public static boolean animation_finished = true; //20141125 ����ͬ��titlebar�İ�ť����
+	public static boolean DB_SAVE_MODE = true;
+	public static boolean NEED_DB_SERVICE = false;
 }

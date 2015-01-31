@@ -1,9 +1,9 @@
 package com.mars.note.provider;
 
 import java.util.Calendar;
-import com.mars.note.Editor;
-import com.mars.note.NoteApplication;
 import com.mars.note.R;
+import com.mars.note.app.EditorActivity;
+import com.mars.note.app.NoteApplication;
 import com.mars.note.database.NoteDataBaseManager;
 import com.mars.note.database.NoteRecord;
 import com.mars.note.utils.PictureHelper;
@@ -19,9 +19,9 @@ import android.view.View;
 import android.widget.RemoteViews;
 
 public class NoteCollectionsWidgetProvider extends AppWidgetProvider {
-	final String TAG = "NoteCollectionsWidgetProvider";
-	NoteDataBaseManager noteDBManager;
-	AppWidgetManager appWidgetManager;
+	private final String TAG = "NoteCollectionsWidgetProvider";
+	private NoteDataBaseManager noteDBManager;
+	private AppWidgetManager appWidgetManager;
 
 	// run this when receive a broadcast
 	@Override
@@ -43,7 +43,7 @@ public class NoteCollectionsWidgetProvider extends AppWidgetProvider {
 	@Override
 	public void onUpdate(Context context, AppWidgetManager appWidgetManager,
 			int[] appWidgetIds) {
-		Log.d(TAG, "onUpdate");
+//		Log.d(TAG, "onUpdate");
 		final int N = appWidgetIds.length;
 //		Log.d(TAG, "onUpdate appWidgetIds.length = " + N);
 		for (int i = 0; i < N; i++) {
@@ -58,7 +58,7 @@ public class NoteCollectionsWidgetProvider extends AppWidgetProvider {
 			views.setRemoteAdapter(R.id.widget_stack_view, intent);
 			views.setEmptyView(R.id.widget_stack_view,
 					R.id.widget_stack_empty_text);
-			Intent intent2 = new Intent(context, Editor.class);
+			Intent intent2 = new Intent(context, EditorActivity.class);
 			intent2.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
 			PendingIntent pIntent = PendingIntent.getActivity(context, 0,
 					intent2, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -72,18 +72,18 @@ public class NoteCollectionsWidgetProvider extends AppWidgetProvider {
 	@Override
 	public void onDeleted(Context context, int[] appWidgetIds) {
 		super.onDeleted(context, appWidgetIds);
-		Log.d(TAG, "onDeleted");
+//		Log.d(TAG, "onDeleted");
 	}
 
 	@Override
 	public void onDisabled(Context context) {
 		super.onDisabled(context);
-		Log.d(TAG, "onDisabled");
+//		Log.d(TAG, "onDisabled");
 	}
 
 	@Override
 	public void onEnabled(Context context) {
 		super.onEnabled(context);
-		Log.d(TAG, "onEnabled");
+//		Log.d(TAG, "onEnabled");
 	}
 }

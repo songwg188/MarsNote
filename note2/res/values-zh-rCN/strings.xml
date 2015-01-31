@@ -13,7 +13,7 @@
     <string name="friday">周五</string>
     <string name="saturday">周六</string>
     <string name="sunday">周日</string>
-    <string name="toast_reached_max_text">达到最大字数！</string>
+    <string name="toast_reached_max_text">您输入的字符数已达到最大字数！</string>
     <string name="menu_delete_note">删除日记</string>
     <string name="batch_select_title">批量删除日记</string>
     <string name="dialog_yes">确认</string>
@@ -26,7 +26,7 @@
     <string name="pull_to_refresh_pull_label">下拉刷新...</string>
     <string name="pull_to_refresh_refreshing_label">更新中...</string>
     <string name="pull_to_refresh_release_label">释放刷新...</string>
-    <string name="dialog_executing_message">请等待...</string>
+    <string name="dialog_executing_message">请稍等...</string>
     <string name="title_activity_dian_di_note">点点笔记</string>
     <string name="nivigation_recent_title">最近</string>
     <string name="nivigation_calendar_title">日历</string>
@@ -48,6 +48,7 @@
     <string name="menu_settings_title">设置    </string>
     <string name="backup_restore_title">备份恢复</string>
     <string name="add_new_record_title">添加新备份</string>
+    <string name="export_text_title">导出文本</string>
     <string name="add_new_record_title_2">到路径:</string>
     <string name="backup_date_title">日期 : </string>
     <string name="backup_time_title">时间 : </string>
@@ -120,7 +121,8 @@
     
 	<string name ="popwindow_camera">拍照</string>
 	<string name ="popwindow_gallery">图库</string>
-	
 	<string name ="editor_max_imgs">您只能插入10张不同的图片哦</string>
-	
+	<string name = "replaced_text">[图片]</string>
+	<string name="export_import_xml_title">文本导入导出</string>
+	<string name="product_info">APP作者 ：Mars</string>
 </resources>

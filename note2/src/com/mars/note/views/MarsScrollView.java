@@ -7,23 +7,17 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ScrollView;
 
-/*
- * Author mars
- * Date 20141202
- * Description 带有阻尼效果的scrollview
- */
-
 public class MarsScrollView extends ScrollView {
 
-	Context mContext;
+	private Context mContext;
 	private View mView;
 	private float touchY;
 	private int scrollY = 0;
 	private boolean handleStop = false;
 	private int eachStep = 0;
 
-	private static final int MAX_SCROLL_HEIGHT = 300;// 最大滑动距离
-	private static final float SCROLL_RATIO = 1f;// 阻尼系数,越小阻力就越大
+	private static final int MAX_SCROLL_HEIGHT = 300;
+	private static final float SCROLL_RATIO = 1f;
 	
 	private static final long eachDelay = 20;
 

@@ -1,0 +1,19 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg" >
+
+    <com.mars.note.views.BounceListView
+        android:id="@+id/settings_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:cacheColorHint="@color/transparent"
+        android:divider="@null"
+        android:dividerHeight="2dp"
+        android:listSelector="@color/transparent"
+        android:overScrollMode="always"
+        android:scrollbars="none" />
+    <!-- android:overScrollMode="always" 开启边缘模式，才能有回弹效果 -->
+
+</RelativeLayout>

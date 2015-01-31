@@ -1,0 +1,30 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/transparent"
+    android:focusable="false"
+    android:orientation="vertical"
+    android:paddingLeft="10dp"
+    android:paddingRight="10dp" >
+
+
+    <Button
+        android:id="@+id/camera"
+        android:layout_width="100dp"
+        android:layout_height="40dp"
+        android:background="@drawable/pop_window_bg_top"
+        android:text="@string/popwindow_camera" 
+        android:textColor="#FFFFFF"
+       />
+    
+    <Button
+        android:id="@+id/gallery"
+        android:layout_width="100dp"
+        android:layout_height="40dp"
+        android:background="@drawable/pop_window_bg_bottom"
+        android:text="@string/popwindow_gallery"
+        android:textColor="#FFFFFF"
+        android:layout_marginTop="1dp"/>
+
+</LinearLayout>

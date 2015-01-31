@@ -1,0 +1,10 @@
+<resources>
+    <dimen name="title_and_content_width">122.4489795918367dp</dimen>
+    <dimen name="checkbox_width">25dp</dimen>
+    <dimen name="checkbox_marginRight">24dp</dimen>
+    <dimen name="bottom_height">130dp</dimen>
+    <dimen name="calendar_week_title_textsize">15sp</dimen>
+    <dimen name="calendar_current_month_textsize">15sp</dimen>
+    <dimen name="calendar_other_month_textsize">12sp</dimen>
+    <dimen name="calendar_record_count_textsize">11sp</dimen>
+</resources>

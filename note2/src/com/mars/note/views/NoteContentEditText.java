@@ -1,6 +1,6 @@
 package com.mars.note.views;
 
-import com.mars.note.api.Logg;
+import com.mars.note.utils.Logg;
 
 import android.content.Context;
 import android.graphics.Canvas;

@@ -22,8 +22,7 @@
     <string-array name="settings_title">
         <item>Theme</item>   
         <item>Backup and Restore</item>
-        <item>Export Notes to XML</item>
-        <item>Import XML to Notes</item>
+        <item>Export And Import Text</item>
         <item>Password</item>
 <!--         <item>LOGO Chooser</item> -->
     </string-array>
@@ -33,5 +32,7 @@
         <item>Tablet</item>
         <item>Alpha</item>
         <item>Rotate</item>
+        <item>ZoomIn</item>
+        <item>Accordion</item>
     </string-array>
 </resources>

@@ -1,0 +1,15 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:mars="http://schemas.android.com/apk/res/com.mars.note"
+    >
+
+    <com.mars.note.views.NoteCalendar
+                android:id="@+id/calendar"
+                android:layout_width="match_parent"
+                android:layout_height="249dp"
+                android:layout_margin="1dp"
+                mars:backgroundColor="#00000000" 
+                android:layout_marginBottom="0dp"/>
+</LinearLayout >

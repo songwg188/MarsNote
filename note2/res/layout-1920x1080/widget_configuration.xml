@@ -1,0 +1,77 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingBottom="3dp"
+    android:paddingLeft="3dp"
+    android:paddingRight="3dp"
+    android:background="#44444444"
+    android:paddingTop="3dp" >
+
+    <TextView 
+        android:layout_marginRight="30dp"
+    	android:layout_marginLeft="30dp"
+        android:clickable="true"
+        android:id="@+id/relate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"        
+        android:minWidth="300dp"
+        android:background="@drawable/item_bg"
+        android:gravity="center"
+        android:textSize="22sp"
+        android:textColor="@color/white"
+        android:text="@string/widget_relate_to_others_title"
+        />
+    <TextView 
+        android:layout_marginRight="30dp"
+    	android:layout_marginLeft="30dp"
+        android:clickable="true"
+        android:id="@+id/add_new"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/relate"
+        android:minWidth="300dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/item_bg"
+        android:gravity="center"
+        android:textSize="22sp"
+        android:textColor="@color/white"
+        android:text="@string/widget_add_new_title"
+        />
+    <SearchView
+        android:id="@+id/searchView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true" 
+        android:queryHint="@string/search_title" 
+        android:visibility="gone"
+        
+        >
+    </SearchView>
+    <!-- android:iconifiedByDefault="false" expaned -->
+    
+    <ListView 
+        android:id="@+id/search_list"
+        android:layout_width="match_parent"
+        android:layout_height="fill_parent"
+        android:paddingTop="10dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:layout_marginTop="0dp"
+        android:fadingEdge="none" 
+        android:layout_below="@+id/searchView"
+        android:overScrollMode="never"
+        android:cacheColorHint="@color/transparent"			
+		android:listSelector="@color/transparent"
+		android:visibility="gone"
+		android:layout_marginBottom="10dp"
+        >
+        
+        
+    </ListView>
+</RelativeLayout>

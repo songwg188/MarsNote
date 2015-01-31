@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Android给每个APK进程分配一个单独的空间,manifest中的userid就是对应一个分配的Linux用户ID，
+<!--
+Android给每个APK进程分配一个单独的空间,manifest中的userid就是对应一个分配的Linux用户ID，
 并且为它创建一个沙箱，以防止影响其他应用程序（或者其他应用程序影响它）。
 用户ID 在应用程序安装到设备中时被分配，并且在这个设备中保持它的永久性。
 通常，不同的APK会具有不同的userId，因此运行时属于不同的进程中，而不同进程中的资源是不共享的，
@@ -7,13 +8,21 @@
 那么就需要通过设置shareUserId来实现这一目的。
 通过Shared User id,拥有同一个User id的多个APK可以配置成运行在同一个进程中.
 所以默认就是可以互相访问任意数据. 也可以配置成运行成不同的进程, 
-同时可以访问其他APK的数据目录下的数据库和文件.就像访问本程序的数据一样。 -->
+同时可以访问其他APK的数据目录下的数据库和文件.就像访问本程序的数据一样。
+-->
+
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.mars.note"
-    android:versionCode="2"
-    android:versionName="1.1" 
     android:sharedUserId="com.mars.note"
-    >
+    android:versionCode="2"
+    android:versionName="1.1" >
+
+    <supports-screens
+        android:anyDensity="true"
+        android:largeScreens="true"
+        android:normalScreens="true"
+        android:resizeable="true"
+        android:smallScreens="true" />
 
     <uses-sdk
         android:minSdkVersion="16"
@@ -23,27 +32,23 @@
     <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
-    
-    <permission 
+
+    <permission
         android:name="com.mars.note.LAUNCH"
-        android:protectionLevel="signature"
         android:label="Limit who can launch this application"
-        />
-<!--  android:largeHeap="true" -->
+        android:protectionLevel="signature" />
+    <!-- android:largeHeap="true" -->
     <application
-        android:name=".NoteApplication"
+        android:name=".app.NoteApplication"
         android:allowBackup="true"
         android:icon="@drawable/apk_icon"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" 
-       
-        >
+        android:theme="@style/AppTheme" >
         <receiver
             android:name=".provider.NoteWidgetProvider"
             android:icon="@drawable/apk_icon"
-            android:label="@string/widget_name" 
-            android:permission="com.mars.note.LAUNCH"
-            >
+            android:label="@string/widget_name"
+            android:permission="com.mars.note.LAUNCH" >
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.mars.note.widget.refresh" />
@@ -59,40 +64,36 @@
 
         <activity
             android:name=".provider.WidgetConfiguration"
-            android:theme="@style/AppTheme.Configuration_Dialog"
-             >
+            android:theme="@style/AppTheme.Configuration_Dialog" >
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
         </activity>
         <activity
-            android:name=".NoteSettings"
+            android:name=".app.NoteSettingsActivity"
             android:label="@string/menu_settings_title"
-			android:permission="com.mars.note.LAUNCH"
-		>
+            android:permission="com.mars.note.LAUNCH" >
         </activity>
         <activity
-            android:name=".ThemeSettings"
+            android:name=".app.ThemeSettingsActivity"
             android:label="@string/theme_settings_title"
-            android:permission="com.mars.note.LAUNCH"
-             >
+            android:permission="com.mars.note.LAUNCH" >
         </activity>
         <activity
-            android:name=".BackUpActivity"
-            android:label="@string/backup_restore_title" 
-            android:permission="com.mars.note.LAUNCH"
-            >
+            android:name=".app.BackUpActivity"
+            android:label="@string/backup_restore_title"
+            android:permission="com.mars.note.LAUNCH" >
         </activity>
         <activity
-            android:name=".Editor"
-            android:label="@string/app_name"
+            android:name=".app.EditorActivity"
+            android:icon="@null"
+            android:label="@null"
+            android:logo="@null"
             android:launchMode="singleTask"
-            android:windowSoftInputMode="adjustResize" 
             android:permission="com.mars.note.LAUNCH"
-            >
-             <intent-filter>
+            android:windowSoftInputMode="adjustResize" >
+            <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
             </intent-filter>
         </activity>
         <!--
@@ -106,15 +107,13 @@
         -->
         <!-- android:taskAffinity="" 指定实例压入哪个任务栈，暂时不需要 -->
         <activity
-            android:name=".Main"
+            android:name=".app.MarsNoteActivity"
             android:alwaysRetainTaskState="true"
-            android:launchMode="singleTop"
             android:icon="@drawable/apk_icon"
             android:label="@string/activity_note_title"
+            android:launchMode="singleTop"
             android:theme="@style/AppTheme.NoActionBar"
-            android:windowSoftInputMode="adjustResize|stateHidden"
-            
-             >
+            android:windowSoftInputMode="adjustResize|stateHidden" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -130,8 +129,8 @@
         <receiver
             android:name=".provider.NoteCollectionsWidgetProvider"
             android:icon="@drawable/apk_icon"
-            android:permission="com.mars.note.LAUNCH"
-            android:label="@string/widget_collections_name" >
+            android:label="@string/widget_collections_name"
+            android:permission="com.mars.note.LAUNCH" >
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.mars.note.widgetcollections.refresh" />
@@ -144,29 +143,36 @@
 
         <activity
             android:name=".server.LoginServer"
-            android:label="@string/title_activity_login_server" 
-            android:permission="com.mars.note.LAUNCH"
-            >
+            android:label="@string/title_activity_login_server"
+            android:permission="com.mars.note.LAUNCH" >
         </activity>
         <activity
-            android:name=".LoginActivity"
+            android:name=".app.LoginActivity"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar"
             android:permission="com.mars.note.LAUNCH"
-             >
+            android:theme="@style/AppTheme.NoActionBar" >
         </activity>
         <activity
-            android:name="com.mars.note.server.Register"
+            android:name=".server.Register"
             android:label="@string/title_activity_register"
-            android:windowSoftInputMode="adjustResize" 
             android:permission="com.mars.note.LAUNCH"
-            >
-
-            <!-- <intent-filter> -->
-            <!-- <action android:name="android.intent.action.MAIN" /> -->
-            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
-            <!-- </intent-filter> -->
+            android:windowSoftInputMode="adjustResize" >
         </activity>
+
+        <service
+            android:name=".app.DBService"
+            android:enabled="true" >
+        </service>
+
+        <activity
+            android:name="com.mars.note.app.TextImpExpActivity"
+            android:label="@string/export_import_xml_title" >
+        </activity>
+        <provider 
+            android:exported="true"
+            android:name="com.mars.note.provider.NoteContentProvider" 
+            android:authorities="com.mars.note.provider.NoteContentProvider"
+            />
     </application>
 
 </manifest>

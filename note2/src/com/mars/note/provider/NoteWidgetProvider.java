@@ -1,12 +1,20 @@
 package com.mars.note.provider;
 
+import java.io.ByteArrayInputStream;
+import java.io.ObjectInputStream;
+import java.util.ArrayList;
 import java.util.Calendar;
-import com.mars.note.Editor;
-import com.mars.note.NoteApplication;
 import com.mars.note.R;
+import com.mars.note.api.Config;
+import com.mars.note.api.ImageSpanInfo;
+import com.mars.note.app.EditorActivity;
+import com.mars.note.app.NoteApplication;
 import com.mars.note.database.NoteDataBaseManager;
 import com.mars.note.database.NoteRecord;
+import com.mars.note.utils.Logg;
 import com.mars.note.utils.PictureHelper;
+import com.mars.note.utils.Util;
+
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
@@ -19,8 +27,8 @@ import android.view.View;
 import android.widget.RemoteViews;
 
 public class NoteWidgetProvider extends AppWidgetProvider {
-	final String TAG = "NoteWidgetProvider";
-	NoteDataBaseManager noteDBManager;
+	private final String TAG = "NoteWidgetProvider";
+	private NoteDataBaseManager noteDBManager;
 
 	// run this when receive a broadcast
 	@Override
@@ -28,7 +36,6 @@ public class NoteWidgetProvider extends AppWidgetProvider {
 		super.onReceive(context, intent);
 		AppWidgetManager appWidgetManager = AppWidgetManager
 				.getInstance(context);
-//		Log.d("widget", "onReceive" + " " + intent.getAction());
 		if (noteDBManager == null) {
 			noteDBManager = NoteApplication.getDbManager();
 		}
@@ -36,20 +43,32 @@ public class NoteWidgetProvider extends AppWidgetProvider {
 			int widgetID = intent.getIntExtra(
 					AppWidgetManager.EXTRA_APPWIDGET_ID, -1);
 			if (widgetID != -1) {
-//				Log.d("widget", "onReceive " + " widgetID = " + widgetID);
 				String noteId = noteDBManager
 						.querySingleRecordIDByWidgetID(String.valueOf(widgetID));
-//				Log.d("widget", "noteId = " + noteId);
 				NoteRecord nr = noteDBManager.querySingleRecord(noteId);
 				if (nr != null) {
 					String title = nr.title;
+					//20141215 过滤图片字符串 start
 					String content = nr.content;
+					byte[] data = nr.imageSpanInfos;
+					if (data != null) {
+						ArrayList<ImageSpanInfo> imageSpanInfoList = Util.getImageSpanInfoListFromBytes(data);
+						content = Util.filterContent(context,content, imageSpanInfoList);
+					}
+					//20141215 过滤图片字符串 end
 					String path = nr.imgpath;
 					Bitmap bm = null;
 					if (path != null && (!path.equals("null"))
 							&& (!"".equals(path))) {
-						bm = PictureHelper.getCropImage(path, 400, true, 100,
-								context, 7, true);
+						if (Config.DB_SAVE_MODE) {
+							//从数据库读图
+							bm = noteDBManager.getCroppedImage(path);
+							if(bm == null)
+								throw new NullPointerException("bm null error");
+						} else {
+							bm = PictureHelper.getCropImage(path, context.getResources().getDimension(R.dimen.listview_image_width),
+									context.getResources().getDimension(R.dimen.listview_image_height), true, 100, context, 7, true);
+						}
 					}
 					RemoteViews views = new RemoteViews(
 							context.getPackageName(), R.layout.widget_layout);
@@ -120,12 +139,24 @@ public class NoteWidgetProvider extends AppWidgetProvider {
 				NoteRecord nr = noteDBManager.querySingleRecord(noteId);
 				String title = nr.title;
 				String content = nr.content;
+				byte[] data = nr.imageSpanInfos;
+				if (data != null) {
+					ArrayList<ImageSpanInfo> imageSpanInfoList = Util.getImageSpanInfoListFromBytes(data);
+					content = Util.filterContent(context,content, imageSpanInfoList);
+				}
 				String path = nr.imgpath;
 				Bitmap bm = null;
 				if (path != null && (!path.equals("null"))
 						&& (!"".equals(path))) {
-					bm = PictureHelper.getCropImage(path, 400, true, 100,
-							context, 7, true);
+					if (Config.DB_SAVE_MODE) {
+						//从数据库读图
+						bm = noteDBManager.getCroppedImage(path);
+						if(bm == null)
+							throw new NullPointerException("bm null error");
+					} else {
+						bm = PictureHelper.getCropImage(path, context.getResources().getDimension(R.dimen.listview_image_width),
+								context.getResources().getDimension(R.dimen.listview_image_height), true, 100, context, 7, true);
+					}
 				}
 				RemoteViews views = new RemoteViews(context.getPackageName(),
 						R.layout.widget_layout);
@@ -141,7 +172,7 @@ public class NoteWidgetProvider extends AppWidgetProvider {
 					views.setViewVisibility(R.id.content2, View.VISIBLE);
 					views.setViewVisibility(R.id.content, View.GONE);
 				}
-				Intent intentR = new Intent(context, Editor.class);
+				Intent intentR = new Intent(context, EditorActivity.class);
 				intentR.setAction(TAG + widgetID); // setAction to make intent
 													// unique or all widgets
 													// will use one intent
@@ -166,7 +197,7 @@ public class NoteWidgetProvider extends AppWidgetProvider {
 	@Override
 	public void onUpdate(Context context, AppWidgetManager appWidgetManager,
 			int[] appWidgetIds) {
-		Log.d(TAG, "onUpdate");
+//		Log.d(TAG, "onUpdate");
 		if (noteDBManager == null) {
 			noteDBManager = NoteApplication.getDbManager();
 		}
@@ -184,12 +215,24 @@ public class NoteWidgetProvider extends AppWidgetProvider {
 				NoteRecord nr = noteDBManager.querySingleRecord(noteId);
 				String title = nr.title;
 				String content = nr.content;
+				byte[] data = nr.imageSpanInfos;
+				if (data != null) {
+					ArrayList<ImageSpanInfo> imageSpanInfoList = Util.getImageSpanInfoListFromBytes(data);
+					content = Util.filterContent(context,content, imageSpanInfoList);
+				}
 				String path = nr.imgpath;
 				Bitmap bm = null;
 				if (path != null && (!path.equals("null"))
 						&& (!"".equals(path))) {
-					bm = PictureHelper.getCropImage(path, 400, true, 100,
-							context, 7, true);
+					if (Config.DB_SAVE_MODE) {
+						//从数据库读图
+						bm = noteDBManager.getCroppedImage(path);
+						if(bm == null)
+							throw new NullPointerException("bm null error");
+					} else {
+						bm = PictureHelper.getCropImage(path, context.getResources().getDimension(R.dimen.listview_image_width),
+								context.getResources().getDimension(R.dimen.listview_image_height), true, 100, context, 7, true);
+					}
 				}
 				if (bm != null) {
 					views.setViewVisibility(R.id.img, View.VISIBLE);
@@ -211,7 +254,7 @@ public class NoteWidgetProvider extends AppWidgetProvider {
 						+ calendar.get(Calendar.DAY_OF_MONTH);
 				views.setTextViewText(R.id.date, date);
 			}
-			Intent intent = new Intent(context, Editor.class);
+			Intent intent = new Intent(context, EditorActivity.class);
 			intent.setAction(TAG + appWidgetId); // setAction to make intent
 													// unique or all widgets
 													// will use one intent
@@ -227,7 +270,7 @@ public class NoteWidgetProvider extends AppWidgetProvider {
 	@Override
 	public void onDeleted(Context context, int[] appWidgetIds) {
 		super.onDeleted(context, appWidgetIds);
-		Log.d(TAG, "onDeleted");
+//		Log.d(TAG, "onDeleted");
 		if (noteDBManager == null) {
 			noteDBManager = NoteApplication.getDbManager();
 		}
@@ -243,12 +286,12 @@ public class NoteWidgetProvider extends AppWidgetProvider {
 	@Override
 	public void onDisabled(Context context) {
 		super.onDisabled(context);
-		Log.d(TAG, "onDisabled");
+//		Log.d(TAG, "onDisabled");
 	}
 
 	@Override
 	public void onEnabled(Context context) {
 		super.onEnabled(context);
-		Log.d(TAG, "onEnabled");
+//		Log.d(TAG, "onEnabled");
 	}
 }

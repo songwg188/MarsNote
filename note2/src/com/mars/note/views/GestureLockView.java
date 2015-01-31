@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import com.mars.note.utils.Logg;
+
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -30,11 +32,11 @@ public class GestureLockView extends View {
 	private boolean result;
 	private Timer timer;
 
-	private final int OUT_CYCLE_NORMAL = Color.rgb(108, 119, 138); // 锟斤拷锟斤拷圆锟斤拷色
-	private final int OUT_CYCLE_ONTOUCH = Color.rgb(025, 066, 103); // 选锟斤拷锟斤拷圆锟斤拷色
-	private final int INNER_CYCLE_TOUCHED = Color.rgb(002, 210, 255); // 选锟斤拷锟斤拷圆锟斤拷色
-	private final int INNER_CYCLE_NOTOUCH = Color.rgb(100, 100, 100); // 未选锟斤拷锟斤拷圆锟斤拷色
-	private final int LINE_COLOR = Color.argb(127, 002, 210, 255); // 锟斤拷锟斤拷锟斤拷锟斤拷色
+	private final int OUT_CYCLE_NORMAL = Color.rgb(108, 119, 138); 
+	private final int OUT_CYCLE_ONTOUCH = Color.rgb(025, 066, 103);
+	private final int INNER_CYCLE_TOUCHED = Color.rgb(002, 210, 255); 
+	private final int INNER_CYCLE_NOTOUCH = Color.rgb(100, 100, 100); 
+	private final int LINE_COLOR = Color.argb(127, 002, 210, 255); 
 
 	private final int INNER_CYCLE_ERROR_COLOR = INNER_CYCLE_TOUCHED;
 	private final int ERROR_COLOR = INNER_CYCLE_ERROR_COLOR;
@@ -70,12 +72,14 @@ public class GestureLockView extends View {
 	@Override
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 		super.onMeasure(widthMeasureSpec, widthMeasureSpec);
+//		Logg.D("onMeasure");
 	}
 
 	@Override
 	protected void onLayout(boolean changed, int left, int top, int right,
 			int bottom) {
 		super.onLayout(changed, left, top, right, bottom);
+//		Logg.D("onMeasure");
 		int perSize = 0;
 		if (cycles == null && (perSize = getWidth() / 6) > 0) {
 			cycles = new MyCircle[9];
@@ -121,7 +125,7 @@ public class GestureLockView extends View {
 	@Override
 	protected void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
-
+//		Logg.D("onDraw");
 		for (int i = 0; i < cycles.length; i++) {
 			if (!canContinue && !result) {
 				paintOnTouch.setColor(ERROR_COLOR);
@@ -205,9 +209,7 @@ public class GestureLockView extends View {
 				break;
 			}
 			case MotionEvent.ACTION_UP: {
-				// 锟斤拷停锟斤拷锟斤拷
 				canContinue = false;
-				// 锟斤拷锟斤拷锟�
 				StringBuffer sb = new StringBuffer();
 				for (int i = 0; i < linedCycles.size(); i++) {
 					sb.append(linedCycles.get(i));
@@ -222,7 +224,6 @@ public class GestureLockView extends View {
 				timer.schedule(new TimerTask() {
 					@Override
 					public void run() {
-						// 锟斤拷原
 						eventX = eventY = 0;
 						for (int i = 0; i < cycles.length; i++) {
 							cycles[i].setOnTouch(false);

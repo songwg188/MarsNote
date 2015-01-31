@@ -3,12 +3,12 @@ package com.mars.note.views;
 /*
  * Author Mars
  * Date 20141202
- * Description 1¡¢refer to http://blog.csdn.net/mydreamongo/article/details/30468543
- *             ViewPagerÔÚ»¬¶¯ÖĞÓĞ¿ÉÄÜtouchÊÂ¼ş±»×ÓViewÏûºÄµô£¬Òò´ËÖØĞ´onInterceptTouchEvent
- *             µ±¾àÀë´óÓÚ10px¾ÍÈÏÎªÊÇ»¬¶¯ÊÂ¼ş£¬²»ÔÙ¸ø×ÓView·Ö·¢ÊÂ¼ş£¬¾ßÌåÔ­Àí²Î¿¼onTouchÊÂ¼ş´«µİ»úÖÆ
- *             ½âÊÍÎªºÎÖØĞ´µÄÊÇonInterceptTouchEvent£¬ÒòÎª·µ»Øtrue½«²»ÔÙ¸ø×ÓView´«µİÊÂ¼ş
+ * Description 1ï¿½ï¿½refer to http://blog.csdn.net/mydreamongo/article/details/30468543
+ *             ViewPagerï¿½Ú»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğ¿ï¿½ï¿½ï¿½touchï¿½Â¼ï¿½ï¿½ï¿½ï¿½ï¿½Viewï¿½ï¿½Äµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğ´onInterceptTouchEvent
+ *             ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½10pxï¿½ï¿½ï¿½ï¿½Îªï¿½Ç»ï¿½ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¸ï¿½ï¿½ï¿½Viewï¿½Ö·ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô­ï¿½ï¿½Î¿ï¿½onTouchï¿½Â¼ï¿½ï¿½ï¿½ï¿½İ»ï¿½ï¿½ï¿½
+ *             ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½Ğ´ï¿½ï¿½ï¿½ï¿½onInterceptTouchEventï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½trueï¿½ï¿½ï¿½ï¿½ï¿½Ù¸ï¿½ï¿½ï¿½Viewï¿½ï¿½ï¿½ï¿½ï¿½Â¼ï¿½
  *             
- *             2¡¢ÊµÏÖ±ß½ç»Øµ¯
+ *             2ï¿½ï¿½Êµï¿½Ö±ß½ï¿½Øµï¿½
  */
 
 import android.content.Context;
@@ -23,11 +23,11 @@ public class BounceViewPager extends ViewPager {
 	private boolean isScrollable = true;
 	private boolean isTouchable = true;
 	
-	private Rect mRect = new Rect();// ÓÃÀ´¼ÇÂ¼³õÊ¼Î»ÖÃ
+	private Rect mRect = new Rect();
 	private int pagerCount = 0;
 	private int currentItem = 0;
 	private boolean handleDefault = true;
-	private static final float RATIO = 0.5f;// Ä¦²ÁÏµÊı
+	private static final float RATIO = 0.5f;
 	private static final float SCROLL_WIDTH = 20f;
 	float preX = 0;
 	private boolean isSpringback = false;
@@ -112,15 +112,15 @@ public class BounceViewPager extends ViewPager {
 		return false;
 	}
 
-	// ÉèÖÃ×Ü¹²ÓĞ¶àÉÙÒ³,Çë¼ÇµÃµ÷ÓÃËü
 	public void setpagerCount(int pagerCount) {
 		this.pagerCount = pagerCount;
 	}
 
-	// ÕâÊÇµ±Ç°ÊÇµÚ¼¸Ò³£¬ÇëÔÚonPageSelect·½·¨ÖĞµ÷ÓÃËü¡£
 	public void setCurrentIndex(int currentItem) {
 		this.currentItem = currentItem;
 	}
+	
+	
 
 	@Override
 	public boolean onTouchEvent(MotionEvent arg0) {
@@ -131,15 +131,14 @@ public class BounceViewPager extends ViewPager {
 					onTouchActionUp();
 					break;
 				case MotionEvent.ACTION_MOVE:
-					// µ±Ê±»¬µ½µÚÒ»Ïî»òÕßÊÇ×îºóÒ»ÏîµÄÊ±ºò¡£
 					if ((currentItem == 0 || currentItem == pagerCount - 1)) {
 						float nowX = arg0.getX();
 						float offset = nowX - preX;
 						preX = nowX;
 						if (currentItem == 0) {
-							if (offset > SCROLL_WIDTH) {// ÊÖÖ¸»¬¶¯µÄ¾àÀë´óÓÚÉè¶¨Öµ
+							if (offset > SCROLL_WIDTH) {
 								whetherConditionIsRight(offset);
-							} else if (!handleDefault) {// ÕâÖÖÇé¿öÊÇÒÑ¾­³öÏÖ»º³åÇøÓòÁË£¬ÊÖÖ¸ÂıÂı»Ö¸´µÄÇé¿ö
+							} else if (!handleDefault) {
 								if (getLeft() + (int) (offset * RATIO) >= mRect.left) {
 									layout(getLeft() + (int) (offset * RATIO),
 											getTop(), getRight()
@@ -147,6 +146,22 @@ public class BounceViewPager extends ViewPager {
 											getBottom());
 								}
 							}
+							//bug 
+//							//20141213 è§£å†³ç¬¬ä¸€é¡µä¸èƒ½å³æ»‘åŠ¨å›å¼¹
+//							if (pagerCount - 1 == currentItem) {
+//								if (offset < -SCROLL_WIDTH) {
+//									whetherConditionIsRight(offset);
+//								} else if (!handleDefault) {
+//									if (getRight() + (int) (offset * RATIO) <= mRect.right) {
+//										layout(getLeft()
+//												+ (int) (offset * RATIO),
+//												getTop(),
+//												getRight()
+//														+ (int) (offset * RATIO),
+//												getBottom());
+//									}
+//								}
+//							}
 						} else {
 							if (offset < -SCROLL_WIDTH) {
 								whetherConditionIsRight(offset);
@@ -208,5 +223,5 @@ public class BounceViewPager extends ViewPager {
 		super.setCurrentItem(item);
 		setCurrentIndex(item);
 	}
-
+	
 }

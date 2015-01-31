@@ -5,8 +5,9 @@
     android:background="@drawable/bg"
     android:focusable="true"
     android:focusableInTouchMode="true"
+    android:id="@+id/root"
     android:orientation="vertical"
-    tools:context=".Editor" >
+    tools:context=".EditorActivity" >
 
     <View
         android:layout_width="match_parent"
@@ -88,25 +89,25 @@
                     android:id="@+id/divider"
                     android:layout_width="match_parent"
                     android:layout_height="2dp"
-                    android:background="@color/white"
+                    android:background="@drawable/action_bar_shadow"
                     android:visibility="visible" />
                 <com.mars.note.views.NoteContentEditText 
                     android:id="@+id/contentText"
                     android:layout_width="match_parent"
                     android:layout_height="fill_parent"
                     android:layout_marginBottom="20dp"
-                    android:layout_marginTop="5dp"
+                    android:layout_marginTop="8dp"
                     android:background="@null"
                     android:ems="10"
                     android:gravity="left|top"
                     android:lineSpacingExtra="3dp"
-                    android:maxLength="5000"
                     android:minHeight="390dp"
                     android:singleLine="false"
                     android:scrollHorizontally="false"
                     android:textColor="#DDDDDD"
                     android:textColorHint="#AAAAAA"
-                    android:textSize="19sp" />
+                    android:textSize="19sp" 
+                    />
                 <!-- android:maxLength="2000" -->
 
                 <View

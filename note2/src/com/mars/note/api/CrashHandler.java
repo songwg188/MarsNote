@@ -12,7 +12,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.mars.note.BackUpActivity;
+import com.mars.note.app.BackUpActivity;
+import com.mars.note.utils.Logg;
 
 import android.content.Context;
 import android.content.pm.PackageInfo;
@@ -64,8 +65,7 @@ public class CrashHandler implements UncaughtExceptionHandler {
 			@Override
 			public void run() {
 				Looper.prepare();
-				Toast.makeText(mContext, "An exception happend!",
-						Toast.LENGTH_LONG).show();
+				Logg.E("An exception happend!");
 				Looper.loop();
 			}
 		}.start();
@@ -102,11 +102,11 @@ public class CrashHandler implements UncaughtExceptionHandler {
 	private String saveCrashInfo2File(Throwable ex) {
 		ex.printStackTrace();
 		StringBuffer sb = new StringBuffer();
-		for (Map.Entry<String, String> entry : infos.entrySet()) {
-			String key = entry.getKey();
-			String value = entry.getValue();
-			sb.append(key + "=" + value + "\n");
-		}
+//		for (Map.Entry<String, String> entry : infos.entrySet()) {
+//			String key = entry.getKey();
+//			String value = entry.getValue();
+//			sb.append(key + "=" + value + "\n");
+//		}
 		Writer writer = new StringWriter();
 		PrintWriter printWriter = new PrintWriter(writer);
 		ex.printStackTrace(printWriter);
@@ -125,11 +125,11 @@ public class CrashHandler implements UncaughtExceptionHandler {
 			if (Environment.getExternalStorageState().equals(
 					Environment.MEDIA_MOUNTED)) {
 				String path = BACKUP_PATH;
-				File dir = new File(path);
+				File dir = new File(path+"error_logs");
 				if (!dir.exists()) {
 					dir.mkdirs();
 				}
-				FileOutputStream fos = new FileOutputStream(path + fileName);
+				FileOutputStream fos = new FileOutputStream(path+"error_logs/" + fileName);
 				fos.write(sb.toString().getBytes());
 				fos.close();
 			}

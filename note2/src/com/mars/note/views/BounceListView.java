@@ -1,5 +1,3 @@
-/** ´ËÀàĞÂÔöÓÚ20141124 ÎªÁËÊµÏÖlistviewµÄ×èÄáĞ§¹û£¬²¢ÓÃ·´ÉäÈ¥³ı±ßÔµÒõÓ°* */
-
 package com.mars.note.views;
 
 import java.lang.reflect.Field;
@@ -10,14 +8,23 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
-import android.view.MotionEvent;import android.widget.AbsListView;
-import android.widget.ListView;/* * Author Mars * Date 20141124 * Description  * 			   È¥³ıÒõÓ° * 			   ÊµÏÖ´ø×èÄá»Øµ¯Ğ§¹ûµÄListView£¬ÀûÓÃ·´Éä»úÖÆÉèÖÃ±ßÔµÒõÓ°ÎªÍ¸Ã÷ * 			   ¿ªÆô±ßÔµ»Øµ¯Ğ§¹ûĞèÒªÔÚXMLÀïÅäÖÃBounceListViewµÄÊôĞÔ android:overScrollMode="always" */
+import android.view.MotionEvent;
+import android.widget.AbsListView;
+import android.widget.ListView;
 
 public class BounceListView extends ListView {
-	private static final int MAX_Y_OVERSCROLL_DISTANCE = 100;	private boolean isScrollable = true;	private boolean isTouchable = true;	float preX = 0;
+	private static final int MAX_Y_OVERSCROLL_DISTANCE = 100;
+	private boolean isScrollable = true;
+	private boolean isTouchable = true;
+	private float preX = 0;
 
 	private Context mContext;
 	private int mMaxYOverscrollDistance;
+	private boolean isItemTouchable = true;
+
+	public void setItemTouchable(boolean touchable) {
+		isItemTouchable = touchable;
+	}
 
 	public BounceListView(Context context) {
 		super(context);
@@ -48,19 +55,15 @@ public class BounceListView extends ListView {
 		final float density = metrics.density;
 		mMaxYOverscrollDistance = (int) (density * MAX_Y_OVERSCROLL_DISTANCE);
 
-		// this.setOverScrollMode(View.OVER_SCROLL_ALWAYS);
-		//·´Éä»úÖÆÖ»ÄÜ¸Ä±ä¹«¿ªÀàµÄË½ÓĞ±äÁ¿ºÍ·½·¨
 		try {
 			Class<?> c = (Class<?>) Class.forName(AbsListView.class.getName());
 			Field egtField = c.getDeclaredField("mEdgeGlowTop");
 			Field egbBottom = c.getDeclaredField("mEdgeGlowBottom");
 			egtField.setAccessible(true);
 			egbBottom.setAccessible(true);
-			Object egtObject = egtField.get(this); // this Ö¸µÄÊÇListiVewÊµÀı
+			Object egtObject = egtField.get(this); // this Ö¸ï¿½ï¿½ï¿½ï¿½ListiVewÊµï¿½ï¿½
 			Object egbObject = egbBottom.get(this);
 
-			// egtObject.getClass() Êµ¼ÊÉÏÊÇÒ»¸ö EdgeEffect ÆäÖĞÓĞÁ½¸öÖØÒªÊôĞÔ mGlow mEdge
-			// ²¢ÇÒÕâÁ½¸öÊôĞÔ¶¼ÊÇDrawableÀàĞÍ
 			Class<?> cc = (Class<?>) Class.forName(egtObject.getClass()
 					.getName());
 			Field mGlow = cc.getDeclaredField("mGlow");
@@ -72,7 +75,7 @@ public class BounceListView extends ListView {
 			mEdge.setAccessible(true);
 			mEdge.set(egtObject, new ColorDrawable(Color.TRANSPARENT));
 			mEdge.set(egbObject, new ColorDrawable(Color.TRANSPARENT));
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -88,6 +91,59 @@ public class BounceListView extends ListView {
 		return super.overScrollBy(deltaX, deltaY, scrollX, scrollY,
 				scrollRangeX, scrollRangeY, maxOverScrollX,
 				mMaxYOverscrollDistance, isTouchEvent);
-	}		public boolean isScrollable() {		return isScrollable;	}	public void setScrollable(boolean isScrollable) {		this.isScrollable = isScrollable;	}	public void setTouchable(boolean enable) {		isTouchable = enable;	}		@Override	public void scrollTo(int x, int y) {		if (isScrollable) {			super.scrollTo(x, y);		}	}		@Override	public boolean onTouchEvent(MotionEvent ev) {		if (isTouchable) {			return super.onTouchEvent(ev);		}		return false;	}		@Override	public boolean onInterceptTouchEvent(MotionEvent ev) {		if (isTouchable) {			boolean result = super.onInterceptTouchEvent(ev);			if (ev.getAction() == MotionEvent.ACTION_DOWN) {				preX = ev.getX();				// Log.d("touch","ACTION_DOWN preX = "+preX);			} else if (ev.getAction() == MotionEvent.ACTION_MOVE) {				if (Math.abs(ev.getX() - preX) > 10) {					// Log.d("touch","ev.getX() = "+ev.getX()+",preX = "+preX);					return true;				} else {					preX = ev.getX();				}			}			return result;		}		return false;	}
+	}
+
+	public boolean isScrollable() {
+		return isScrollable;
+	}
+
+	public void setScrollable(boolean isScrollable) {
+		this.isScrollable = isScrollable;
+	}
+
+	public void setTouchable(boolean enable) {
+		isTouchable = enable;
+	}
+
+	@Override
+	public void scrollTo(int x, int y) {
+		if (isScrollable) {
+			super.scrollTo(x, y);
+		}
+	}
+
+	@Override
+	public boolean onTouchEvent(MotionEvent ev) {
+		if (isTouchable) {
+			return super.onTouchEvent(ev);
+		}
+		return false;
+	}
+
+	/**
+	 * è¿”å›true è¡¨ç¤ºæˆªæ–­ï¼Œåä¹‹
+	 */
+	@Override
+	public boolean onInterceptTouchEvent(MotionEvent ev) {
+		if (isItemTouchable) {
+			if (isTouchable) {
+				boolean result = super.onInterceptTouchEvent(ev);
+				if (ev.getAction() == MotionEvent.ACTION_DOWN) {
+					preX = ev.getX();
+					// Log.d("touch","ACTION_DOWN preX = "+preX);
+				} else if (ev.getAction() == MotionEvent.ACTION_MOVE) {
+					if (Math.abs(ev.getX() - preX) > 10) {
+						// Log.d("touch","ev.getX() = "+ev.getX()+",preX = "+preX);
+						return true;
+					} else {
+						preX = ev.getX();
+					}
+				}
+				return result;
+			}
+			return false;
+		}
+		return true;
+	}
 
 }

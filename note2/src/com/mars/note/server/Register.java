@@ -15,9 +15,9 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.mars.note.BackUpActivity;
 import com.mars.note.R;
 import com.mars.note.api.BaseActivity;
+import com.mars.note.app.BackUpActivity;
 import com.mars.note.utils.PictureHelper;
 
 import android.app.Activity;

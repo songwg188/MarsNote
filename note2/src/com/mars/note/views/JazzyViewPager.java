@@ -21,6 +21,8 @@ import android.view.View;
 import android.view.animation.TranslateAnimation;
 
 import com.mars.note.R;
+import com.mars.note.utils.Logg;
+import com.mars.note.utils.Util;
 import com.nineoldandroids.view.ViewHelper;
 
 public class JazzyViewPager extends ViewPager {
@@ -38,7 +40,7 @@ public class JazzyViewPager extends ViewPager {
 	private static final float SCALE_MAX = 0.5f;
 	private static final float ZOOM_MAX = 0.5f;
 	private static final float ROT_MAX = 15.0f;
-
+	
 	public enum TransitionEffect {
 		Alpha, Standard, Tablet, CubeIn, CubeOut, FlipVertical, FlipHorizontal, Stack, ZoomIn, ZoomOut, RotateUp, RotateDown, Accordion
 	}
@@ -156,6 +158,9 @@ public class JazzyViewPager extends ViewPager {
 		super.addView(wrapChild(child), index, params);
 	}
 
+	/**
+	 * 当距离大于SCROLL_LENGTH，截断对子view 的事件分发(dispatchTouchEvent)
+	 */
 	@Override
 	public boolean onInterceptTouchEvent(MotionEvent ev) {
 		if (isTouchable) {
@@ -163,7 +168,7 @@ public class JazzyViewPager extends ViewPager {
 			if (ev.getAction() == MotionEvent.ACTION_DOWN) {
 				preX = ev.getX();
 			} else if (ev.getAction() == MotionEvent.ACTION_MOVE) {
-				if (Math.abs(ev.getX() - preX) > 4) {
+				if (Math.abs(ev.getX() - preX) > Util.dpToPx(getResources(), getResources().getDimension(R.dimen.jazzyviewpager_scroll_length))) {
 					return true;
 				} else {
 					preX = ev.getX();
@@ -186,41 +191,6 @@ public class JazzyViewPager extends ViewPager {
 	private enum State {
 		IDLE, GOING_LEFT, GOING_RIGHT
 	}
-
-	// public void reset() {
-	// resetPrivate();
-	// int curr = getCurrentItem();
-	// onPageScrolled(curr, 0.0f, 0);
-	// }
-	//
-	// private void resetPrivate() {
-	// for (int i = 0; i < getChildCount(); i++) {
-	// View v = getChildAt(i);
-	// // ViewHelper.setRotation(v, -ViewHelper.getRotation(v));
-	// // ViewHelper.setRotationX(v, -ViewHelper.getRotationX(v));
-	// // ViewHelper.setRotationY(v, -ViewHelper.getRotationY(v));
-	// //
-	// // ViewHelper.setTranslationX(v, -ViewHelper.getTranslationX(v));
-	// // ViewHelper.setTranslationY(v, -ViewHelper.getTranslationY(v));
-	//
-	// ViewHelper.setRotation(v, 0);
-	// ViewHelper.setRotationX(v, 0);
-	// ViewHelper.setRotationY(v, 0);
-	//
-	// ViewHelper.setTranslationX(v, 0);
-	// ViewHelper.setTranslationY(v, 0);
-	//
-	// ViewHelper.setAlpha(v, 1.0f);
-	//
-	// ViewHelper.setScaleX(v, 1.0f);
-	// ViewHelper.setScaleY(v, 1.0f);
-	//
-	// ViewHelper.setPivotX(v, 0);
-	// ViewHelper.setPivotY(v, 0);
-	//
-	// logState(v, "Child " + i);
-	// }
-	// }
 
 	private void logState(View v, String title) {
 		Log.v(TAG,
@@ -448,7 +418,7 @@ public class JazzyViewPager extends ViewPager {
 				ViewHelper.setScaleX(right, mScale);
 				ViewHelper.setScaleY(right, mScale);
 				ViewHelper.setTranslationX(right, mTrans);
-				android.util.Log.d("anim", "mScale = " + ((mScale - 0.5F) * 2));
+//				android.util.Log.d("anim", "mScale = " + ((mScale - 0.5F) * 2));
 				ViewHelper.setAlpha(right, ((mScale - 0.5F) * 2)); // added by
 																	// mars_ma
 			}
@@ -677,6 +647,21 @@ public class JazzyViewPager extends ViewPager {
 											getTop(), getRight()
 													+ (int) (offset * RATIO),
 											getBottom());
+								}
+							}
+							//20141213 解决第一页不能右滑动回弹
+							if (pagerCount - 1 == currentItem) {
+								if (offset < -SCROLL_WIDTH) {
+									whetherConditionIsRight(offset);
+								} else if (!handleDefault) {
+									if (getRight() + (int) (offset * RATIO) <= mRect.right) {
+										layout(getLeft()
+												+ (int) (offset * RATIO),
+												getTop(),
+												getRight()
+														+ (int) (offset * RATIO),
+												getBottom());
+									}
 								}
 							}
 						} else {

@@ -2,7 +2,7 @@ package com.mars.note.server;
 
 import com.mars.note.R;
 import com.mars.note.api.BaseActivity;
-import com.mars.note.fragment.NoteSettingsMenu;
+import com.mars.note.fragment.NoteSettingsFragment;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -20,10 +20,10 @@ import android.widget.EditText;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 
 public class LoginServer extends BaseActivity implements OnCheckedChangeListener, OnClickListener {
-	CheckBox cbx;
-	EditText user_name;
-	EditText password;
-	View showPwdLayout;
+	private CheckBox cbx;
+	private EditText user_name;
+	private EditText password;
+	private View showPwdLayout;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +55,6 @@ public class LoginServer extends BaseActivity implements OnCheckedChangeListener
 	@Override
 	public void onCheckedChanged(CompoundButton cb, boolean b) {
 		if(cb.getId() == R.id.show_pwd){
-//			android.util.Log.d("mars","status = " + b);
 			if(b){
 				password.setInputType(InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
 			}else{

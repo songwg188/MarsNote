@@ -6,17 +6,20 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 
-import com.mars.note.Editor;
-import com.mars.note.Main;
-import com.mars.note.NoteApplication;
 import com.mars.note.R;
 import com.mars.note.api.Config;
 import com.mars.note.api.FragmentCallBack;
+import com.mars.note.api.ImageSpanInfo;
+import com.mars.note.app.EditorActivity;
+import com.mars.note.app.MarsNoteActivity;
+import com.mars.note.app.NoteApplication;
 import com.mars.note.database.NoteDataBaseManager;
 import com.mars.note.database.NoteRecord;
 import com.mars.note.utils.AnimationHelper;
 import com.mars.note.utils.PictureHelper;
+import com.mars.note.utils.Util;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -45,11 +48,11 @@ import android.widget.TextView;
 
 /**
  * 搜索记录
+ * 
  * @author mars
- *
+ * 
  */
-public class SearchFragment extends Fragment implements OnClickListener,
-		SearchView.OnQueryTextListener {
+public class SearchFragment extends BaseFragment implements OnClickListener, SearchView.OnQueryTextListener {
 	private static final String TAG = "SearchFragment";
 	private Activity mActivity;
 	private NoteDataBaseManager noteDBManager;
@@ -66,21 +69,18 @@ public class SearchFragment extends Fragment implements OnClickListener,
 	private ExecutorService executors;
 	private View root;
 
+	private static BaseFragment mInstance;
+
+	public static BaseFragment getInstance() {
+		return new SearchFragment();
+	}
+
 	@Override
 	public void onAttach(Activity mActivity) {
 		super.onAttach(mActivity);
 		this.mActivity = mActivity;
-		setCallBack((FragmentCallBack)mActivity);
-		date_title = mActivity.getResources()
-				.getStringArray(R.array.date_title);
-		time_title = mActivity.getResources()
-				.getStringArray(R.array.time_title);
-	}
-
-	FragmentCallBack mCallBack;
-
-	public void setCallBack(FragmentCallBack mCallBack) {
-		this.mCallBack = mCallBack;
+		date_title = mActivity.getResources().getStringArray(R.array.date_title);
+		time_title = mActivity.getResources().getStringArray(R.array.time_title);
 	}
 
 	@Override
@@ -88,12 +88,9 @@ public class SearchFragment extends Fragment implements OnClickListener,
 		super.onCreate(savedInstanceState);
 		initDBManager();
 		mBitmapCache = NoteApplication.getBitmapCache();
-		// mGridPaperMemoryCache = NoteApplication.getGridPaperMemoryCache();
 		executors = NoteApplication.getExecutors();
 		if (executors == null) {
-			executors = Executors
-					.newFixedThreadPool(RecentRecordsFragment.thread_num);
-			NoteApplication.setExecutors(executors);
+			throw new NullPointerException("executors == null");
 		}
 	}
 
@@ -102,15 +99,13 @@ public class SearchFragment extends Fragment implements OnClickListener,
 	}
 
 	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container,
-			Bundle savedInstanceState) {
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View v = inflater.inflate(R.layout.fragment_search, container, false);
 		mSearchView = (SearchView) v.findViewById(R.id.searchView);
 		mSearchView.onActionViewExpanded();
 		mSearchView.clearFocus();
 		mSearchView.setOnQueryTextListener(this);
-		txt = (TextView) mSearchView.findViewById(mActivity.getResources()
-				.getIdentifier("android:id/search_src_text", null, null));
+		txt = (TextView) mSearchView.findViewById(mActivity.getResources().getIdentifier("android:id/search_src_text", null, null));
 		txt.setTextColor(Color.DKGRAY);
 		searchList = (ListView) v.findViewById(R.id.search_list);
 		root = v;
@@ -123,20 +118,23 @@ public class SearchFragment extends Fragment implements OnClickListener,
 		if (mSearchView != null) {
 			mSearchView.clearFocus();
 		}
-		if (query != null && query.length() != 0 || Config.search_needRefresh) {
+		// Log.d(TAG, "query = "+query);
+		if (query != null && query.length() != 0 && !query.equals("") || Config.search_needRefresh) {
+			if (result_list != null)
+				result_list.clear();
 			result_list = noteDBManager.querySelectedRecords(query);
 			searchListAdapter = new SearchListAdapter(result_list);
 			searchList.setAdapter(searchListAdapter);
 			Config.search_needRefresh = false;
 		}
 		isAddNoteReturn = false;
-//		Log.d(TAG, "onResume");
+		// Log.d(TAG, "onResume");
 	}
 
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-//		Log.d(TAG, "onDestroy");
+		// Log.d(TAG, "onDestroy");
 	}
 
 	@Override
@@ -144,7 +142,7 @@ public class SearchFragment extends Fragment implements OnClickListener,
 		if (v.getTag() != null) {
 			int position = ((Integer) v.getTag()).intValue();
 			NoteRecord nr = result_list.get(position);
-			Intent editNote = new Intent(mActivity, Editor.class);
+			Intent editNote = new Intent(mActivity, EditorActivity.class);
 			String id = nr.id;
 			editNote.putExtra("note_id", id);
 			mActivity.startActivity(editNote);
@@ -181,18 +179,14 @@ public class SearchFragment extends Fragment implements OnClickListener,
 		public View getView(int position, View convertView, ViewGroup parent) {
 			ViewHolder holder = null;
 			if (convertView == null) {
-				convertView = inflater.inflate(R.layout.search_list_item,
-						parent, false);
+				convertView = inflater.inflate(R.layout.search_list_item, parent, false);
 				holder = new ViewHolder();
 				holder.date = (TextView) convertView.findViewById(R.id.date);
 				holder.time = (TextView) convertView.findViewById(R.id.time);
 				holder.title = (TextView) convertView.findViewById(R.id.title);
-				holder.content = (TextView) convertView
-						.findViewById(R.id.content);
-				holder.titleAndContent = (ViewGroup) convertView
-						.findViewById(R.id.title_and_content);
-				holder.img = (ImageView) convertView
-						.findViewById(R.id.note_listitem_img);
+				holder.content = (TextView) convertView.findViewById(R.id.content);
+				holder.titleAndContent = (ViewGroup) convertView.findViewById(R.id.title_and_content);
+				holder.img = (ImageView) convertView.findViewById(R.id.note_listitem_img);
 				convertView.setTag(holder);
 			} else {
 				holder = (ViewHolder) convertView.getTag();
@@ -203,7 +197,7 @@ public class SearchFragment extends Fragment implements OnClickListener,
 			final NoteRecord nr = (NoteRecord) getItem(position);
 			holder.img.setTag(Integer.valueOf(position));
 			final String path = nr.imgpath;
-			if (path != null && (!path.equals("null"))) {
+			if (path != null && (!path.equals("null")) && (!"".equals(path))) {
 				LayoutParams param = holder.titleAndContent.getLayoutParams();
 				if (mBitmapCache == null) {
 					throw new NullPointerException("mBitmapCache cant be null");
@@ -231,14 +225,22 @@ public class SearchFragment extends Fragment implements OnClickListener,
 								}
 							}
 						};
-						Thread thread = new Thread() {
+						// 20141215 此处只需要runnable对象，将交给线程池内部的线程
+						Runnable runnable = new Runnable() {
 							@Override
 							public void run() {
-								if (path != null && (!path.equals("null"))
-										&& (!"".equals(path))) {
-									item.bm = PictureHelper.getCropImage(path,
-											400, true, 100, mActivity, 7, true);
-									mBitmapCache.put(path, item.bm);
+								if (path != null && (!path.equals("null")) && (!"".equals(path))) {
+									if (Config.DB_SAVE_MODE) {
+										// 从数据库读图
+										item.bm = noteDBManager.getCroppedImage(path);
+										if (item.bm == null)
+											throw new NullPointerException("bm null error");
+									} else {
+										item.bm = PictureHelper.getCropImage(path, getResources().getDimension(R.dimen.listview_image_width), getResources()
+												.getDimension(R.dimen.listview_image_height), true, 100, mActivity, 7, true);
+									}
+									if (item.bm != null)
+										mBitmapCache.put(path, item.bm);
 								} else {
 									item.bm = null;
 								}
@@ -247,7 +249,12 @@ public class SearchFragment extends Fragment implements OnClickListener,
 								handler.sendMessage(msg);
 							}
 						};
-						executors.execute(thread);
+						try {
+							executors.execute(runnable);
+						} catch (RejectedExecutionException e) {
+							executors = NoteApplication.getExecutors();
+							executors.execute(runnable);
+						}
 					}
 				} else {
 					if (mBitmapCache.get(path) != null) {
@@ -265,22 +272,27 @@ public class SearchFragment extends Fragment implements OnClickListener,
 			long msTime = Long.parseLong(nr.time);
 			Calendar calendar = Calendar.getInstance();
 			calendar.setTimeInMillis(msTime);
-			String nowDate = calendar.get(Calendar.YEAR) + date_title[0]
-					+ (calendar.get(Calendar.MONTH) + 1) + date_title[1]
+			String nowDate = calendar.get(Calendar.YEAR) + date_title[0] + (calendar.get(Calendar.MONTH) + 1) + date_title[1]
 					+ calendar.get(Calendar.DAY_OF_MONTH) + date_title[2];
-			String nowTime = calendar.get(Calendar.HOUR_OF_DAY) + time_title[0]
-					+ calendar.get(Calendar.MINUTE) + time_title[1];
-			String dayOfWeekText = getdayOfWeek(calendar
-					.get(Calendar.DAY_OF_WEEK));
+			String nowTime = calendar.get(Calendar.HOUR_OF_DAY) + time_title[0] + calendar.get(Calendar.MINUTE) + time_title[1];
+			String dayOfWeekText = getdayOfWeek(calendar.get(Calendar.DAY_OF_WEEK));
 			holder.date.setText(nowDate);
 			holder.time.setText(dayOfWeekText + "  " + nowTime);
 			holder.title.setText(nr.title);
-			holder.content.setText(nr.content);
+			// 20141215 过滤图片字符串 start
+			String content = nr.content;
+			byte[] data = nr.imageSpanInfos;
+			if (data != null) {
+				ArrayList<ImageSpanInfo> imageSpanInfoList = Util.getImageSpanInfoListFromBytes(data);
+				content = Util.filterContent(mActivity, content, imageSpanInfoList);
+			}
+			holder.content.setText(content);
+			// 20141215 过滤图片字符串 end
 			// convertView.setTag(Integer.valueOf(position));
 			convertView.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					Intent editNote = new Intent(mActivity, Editor.class);
+					Intent editNote = new Intent(mActivity, EditorActivity.class);
 					String id = nr.id;
 					editNote.putExtra("note_id", id);
 					mActivity.startActivity(editNote);
@@ -317,8 +329,8 @@ public class SearchFragment extends Fragment implements OnClickListener,
 		refreshListView();
 		return false;
 	}
-	
-	private void refreshListView(){
+
+	private void refreshListView() {
 		if (query != null && query.length() != 0 && !query.equals("")) {
 			result_list = noteDBManager.querySelectedRecords(query);
 			searchListAdapter = new SearchListAdapter(result_list);

@@ -1,0 +1,37 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:mars="http://schemas.android.com/apk/res/com.mars.note"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg" >
+
+    <SearchView
+        android:id="@+id/searchView"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:layout_margin="10dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true" 
+        android:queryHint="@string/search_title" 
+        >
+    </SearchView>
+    <!-- android:iconifiedByDefault="false" expaned -->
+    
+    <ListView 
+        android:id="@+id/search_list"
+        android:layout_width="match_parent"
+        android:layout_height="fill_parent"
+        android:paddingTop="10dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:layout_marginTop="0dp"
+        android:fadingEdge="none" 
+        android:layout_below="@id/searchView"
+        android:cacheColorHint="@color/transparent"			
+		android:listSelector="@color/transparent"
+        >
+        
+        
+    </ListView>
+    
+</RelativeLayout>

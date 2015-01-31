@@ -12,7 +12,7 @@ import android.view.MotionEvent;
 import android.widget.EditText;
 
 public class EditTextWithDel extends EditText {
-	Drawable enable,unable;
+	private Drawable enable,unable;
 	
 	
 	public EditTextWithDel(Context context) {
@@ -40,7 +40,6 @@ public class EditTextWithDel extends EditText {
         });  
         setDrawable();  
 	}
-	//…Ë÷√…æ≥˝Õº∆¨  
     private void setDrawable() {  
         if(length() < 1)          	{
             setCompoundDrawablesWithIntrinsicBounds(null, null, unable, null);

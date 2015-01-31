@@ -1,10 +1,13 @@
 package com.mars.note.views;
 import java.util.Calendar;
 import java.util.Date;
-import com.mars.note.NoteApplication;
 import com.mars.note.R;
 import com.mars.note.api.Config;
+import com.mars.note.app.NoteApplication;
 import com.mars.note.database.NoteDataBaseManager;
+import com.mars.note.utils.Logg;
+import com.mars.note.utils.Util;
+
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
@@ -20,8 +23,8 @@ import android.view.View;
 public class NoteCalendar extends View {
 	private int nums_of_row = 6;
 	private int nums_of_columns = 7;
-	private final static float STARTX = 0;
-	private final static float STARTY = 0;
+	private static float STARTX = 0;
+	private static float STARTY = 0;
 	private float gridWidth;
 	private float gridHeight;
 	private float titleGridHeight;
@@ -35,8 +38,9 @@ public class NoteCalendar extends View {
 	private final int otherMonthTextColor = Color.LTGRAY;
 	private final int countColor = Color.BLACK;
 	private final int selectedCellBG = Color.RED;
-	private final int currentMonthTextSize = 50;
-	private final int otherMonthTextSize = 43;
+	private float currentMonthTextSize = 0;
+	private float otherMonthTextSize = 0;
+	private float recordCountTextSize = 0;
 	private boolean touchable = true;
 	public boolean isTouchable() {
 		return touchable;
@@ -82,6 +86,7 @@ public class NoteCalendar extends View {
 	boolean notOutOfRange = true;
 	float begin, end;
 	ChangeDateListener mChangeDateListener;
+	
 	public void setSelectedDay(int year, int month, int dayOfMonth) {
 		this.selectedYear = year;
 		this.selectedMonth = month;
@@ -91,15 +96,32 @@ public class NoteCalendar extends View {
 					selectedMonth, selectedDay);
 		}
 	}
+	
 	public NoteCalendar(Context context) {
 		super(context);
 		paint = new Paint();
 		setCurrentDate();
 		initNoteDataBaseManager(context);
+		
+		currentMonthTextSize = getContext().getResources().getDimension(R.dimen.calendar_current_month_textsize);
+		otherMonthTextSize = getContext().getResources().getDimension(R.dimen.calendar_other_month_textsize);
+		recordCountTextSize = getContext().getResources().getDimension(R.dimen.calendar_record_count_textsize);
 	}
+	
 	private void initNoteDataBaseManager(Context context) {
 		mNoteDataBaseManager = NoteApplication.getDbManager();
 	}
+	
+	@Override
+	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+		super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+	}
+	
+	@Override
+	protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+		super.onLayout(changed, left, top, right, bottom);
+	}
+	
 	private void setCurrentDate() {
 		Calendar cal = Calendar.getInstance();
 		this.Year = cal.get(Calendar.YEAR);
@@ -125,6 +147,10 @@ public class NoteCalendar extends View {
 		paint = new Paint();
 		setCurrentDate();
 		initNoteDataBaseManager(context);
+		
+		currentMonthTextSize = getContext().getResources().getDimension(R.dimen.calendar_current_month_textsize);
+		otherMonthTextSize = getContext().getResources().getDimension(R.dimen.calendar_other_month_textsize);
+		recordCountTextSize = getContext().getResources().getDimension(R.dimen.calendar_record_count_textsize);
 	}
 	
 	@Override
@@ -133,10 +159,12 @@ public class NoteCalendar extends View {
 		// Log.d("screen", "view width = " + getHeight());
 		caculateCurrentMonthDates();
 		caculateOtherMonthDates();
+		STARTY=Util.dpToPx(getResources(), 2);
 		gridHeight = this.getHeight() / (this.nums_of_row + 0.5F);
 		gridWidth = this.getWidth() / this.nums_of_columns;
 		titleGridWidth = gridWidth;
 		titleGridHeight = (this.getHeight() / (this.nums_of_row + 0.5F)) * 0.5F;
+		
 		drawCalendarBG(canvas);
 		drawCalendarEdge(canvas);
 		drawWeeks(canvas);
@@ -144,6 +172,7 @@ public class NoteCalendar extends View {
 		drawDayOfMonth(canvas);
 		super.onDraw(canvas);
 	}
+	
 	public void drawDayOfMonth(Canvas canvas) {
 		for (int i = 0; i < nums_of_row; i++) {
 			for (int j = 0; j < nums_of_columns; j++) {
@@ -234,7 +263,7 @@ public class NoteCalendar extends View {
 						}
 						if (currentMonthArray[i][j].record_count != 0) {
 							paint.reset();
-							paint.setTextSize(34);
+							paint.setTextSize(recordCountTextSize);
 							paint.setTextAlign(Align.CENTER);
 							paint.setColor(countColor);
 							paint.setTypeface(Typeface.DEFAULT_BOLD);
@@ -263,6 +292,7 @@ public class NoteCalendar extends View {
 			}
 		}
 	}
+	
 	public void drawCellBG(Canvas canvas, int x, int y, int color, boolean today) {
 		paint.reset();
 		paint.setStyle(Style.FILL);
@@ -288,15 +318,16 @@ public class NoteCalendar extends View {
 					(gridHeight - 10) / 2, paint);
 		}
 	}
+	
 	public void drawWeeks(Canvas canvas) {
 		paint.reset();
-		paint.setStrokeWidth(1);
-		canvas.drawLine(0, STARTY + titleGridHeight, this.nums_of_columns
-				* titleGridWidth, STARTY + titleGridHeight, paint);
+		//20141218 px revert to dp
+		paint.setStrokeWidth(Util.dpToPx(getResources(), 1));
+		canvas.drawLine(0, STARTY + titleGridHeight, this.getWidth(), STARTY + titleGridHeight, paint);
 		String[] weekTitles = this.getContext().getResources()
 				.getStringArray(R.array.week_titles);
 		paint.reset();
-		paint.setTextSize(45);
+		paint.setTextSize(getResources().getDimension(R.dimen.calendar_week_title_textsize));
 		paint.setColor(Color.DKGRAY);
 		paint.setTypeface(Typeface.DEFAULT_BOLD);
 		paint.setTextAlign(Align.CENTER);
@@ -305,42 +336,47 @@ public class NoteCalendar extends View {
 					* titleGridWidth, (STARTY + titleGridHeight) * 0.7F, paint);
 		}
 	}
+	
 	public void drawRowsAndColumns(Canvas canvas) {
 		paint.reset();
-		paint.setStrokeWidth(2);
+		paint.setStrokeWidth(Util.dpToPx(getResources(), 1));
 		paint.setColor(Color.DKGRAY);
 		// drawRows
 		if (showGridRowLine) {
 			for (int i = 0; i < this.nums_of_columns - 2; i++) {
-				canvas.drawLine(0, STARTY + titleGridHeight + (i + 1)
-						* gridHeight, this.nums_of_columns * gridWidth, STARTY
-						+ titleGridHeight + (i + 1) * gridHeight, paint);
+				canvas.drawLine(0, titleGridHeight + (i + 1)
+						* gridHeight, this.getWidth(), titleGridHeight + (i + 1) * gridHeight, paint);
 			}
 		}
 		if (showGridColumnLine) {
 			for (int h = 0; h < this.nums_of_columns - 1; h++) {
-				canvas.drawLine(STARTX + (h + 1) * gridWidth, STARTY, STARTX
-						+ (h + 1) * gridWidth, STARTY
-						+ (this.nums_of_row + 0.5F) * gridHeight, paint);
+				canvas.drawLine(STARTX + (h + 1) * gridWidth, 0, STARTX
+						+ (h + 1) * gridWidth, 0
+						+ this.getHeight()-Util.dpToPx(getResources(), 2), paint);
 			}
 		}
 		// paint.setColor(Color.BLACK);
 		// canvas.drawLine(0, STARTY, this.nums_of_columns * gridWidth, STARTY,
 		// paint);
 	}
+	
 	public void drawCalendarEdge(Canvas canvas) {
 		paint.reset();
 		paint.setColor(Color.DKGRAY);
-		paint.setStrokeWidth(3);
+		//20141218 px revert to dp
+		paint.setStrokeWidth(Util.dpToPx(getResources(), 1));
 		paint.setStyle(Style.STROKE);
-		canvas.drawRect(0, 0, this.getWidth(), this.getHeight(), paint);
+		//20141218 px revert to dp
+		canvas.drawRect(0, 0, this.getWidth(), this.getHeight()-Util.dpToPx(getResources(), 2), paint);
 	}
+	
 	public void drawCalendarBG(Canvas canvas) {
 		paint.reset();
 		paint.setStyle(Style.FILL);
 		paint.setColor(backgroundColor);
 		canvas.drawRect(0, 0, this.getWidth(), this.getHeight(), paint);
 	}
+	
 	public int getDayOfWeek(int year, int month, int dayOfMonth) {
 		Date date = new Date(year - 1900, month - 1, dayOfMonth);
 		Calendar calendar = Calendar.getInstance();
@@ -351,6 +387,7 @@ public class NoteCalendar extends View {
 		}
 		return dayOfWeek;
 	}
+	
 	public int getDaysOfMonth(int year, int month) {
 		Calendar test = Calendar.getInstance();
 		test.set(Calendar.YEAR, year);
@@ -358,6 +395,7 @@ public class NoteCalendar extends View {
 		int totalDay = test.getActualMaximum(Calendar.DAY_OF_MONTH);
 		return totalDay;
 	}
+	
 	public void caculateOtherMonthDates() {
 		// caculate previous month
 		Calendar previous = Calendar.getInstance();
@@ -432,6 +470,7 @@ public class NoteCalendar extends View {
 			}
 		}
 	}
+	
 	public void caculateCurrentMonthDates() {
 		int dayOfWeekOfFirstDayOfMonth = getDayOfWeek(this.Year, this.Month, 1);
 		int totalDaysOfMonth = getDaysOfMonth(this.Year, this.Month);
@@ -492,6 +531,7 @@ public class NoteCalendar extends View {
 		}
 		// Log.d("time", "finish");
 	}
+	
 	private class Cell {
 		public int year;
 		public int month;
@@ -499,12 +539,14 @@ public class NoteCalendar extends View {
 		boolean isCurrentDayOfMonth;
 		public int record_count;
 	}
+	
 	private void touchToChangeDate(float x, float y) {
 		int row = (int) ((y - this.titleGridHeight) / this.gridHeight);
 		int column = (int) (x / this.gridWidth);
 //		android.util.Log.d("touch", "row = " + row);
 //		android.util.Log.d("touch", "column = " + column);
 	}
+	
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		if (event.getAction() == MotionEvent.ACTION_DOWN) {
@@ -587,6 +629,7 @@ public class NoteCalendar extends View {
 		}
 		return true;
 	}
+	
 	private void changeDate(int row, int column) {
 		Cell cell = this.currentMonthArray[row][column];
 //		android.util.Log.d("touch", "year = " + cell.year);
@@ -595,19 +638,24 @@ public class NoteCalendar extends View {
 		setSelectedDay(cell.year, cell.month, cell.dayOfMonth);
 		this.invalidate();
 	}
+	
 	public int getYear() {
 		return this.Year;
 	}
+	
 	public int getMonth() {
 		return this.Month;
 	}
+	
 	public int getDayOfMonth() {
 		return this.DayOfMonth;
 	}
+	
 	public interface ChangeDateListener {
 		abstract void onChangeSelectedDate(int year, int month, int day);
 		// abstract void onChangeMonth();
 	}
+	
 	public void setYearAndMonth(int year, int month) {
 		this.Year = year;
 		this.Month = month;

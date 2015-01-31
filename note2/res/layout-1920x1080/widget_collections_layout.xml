@@ -1,0 +1,32 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="165dp"
+    android:background="@null"
+    android:focusable="false"
+    android:orientation="vertical" >
+
+    <ListView
+        android:id="@+id/widget_stack_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" 
+        android:fadingEdge="none"
+        android:scrollbars="none"
+        android:overScrollMode="never"
+        android:divider="@null"
+        android:listSelector="#00000000"
+        android:cacheColorHint="#00000000"
+        >
+    </ListView>
+
+    <TextView
+        android:id="@+id/widget_stack_empty_text"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:layerType="hardware"
+        android:loopViews="true"
+        android:text="@string/empty" />
+
+</FrameLayout>

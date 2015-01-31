@@ -22,10 +22,9 @@
     <string-array name="settings_title">
         <item>风   格</item>
         <item>备份恢复</item>
-        <item>导出文本</item>
-        <item>导入文本</item>
+        <item>文本导入导出</item>
         <item>加   密</item>
-        <item>同步到服务器</item>
+<!--         <item>同步到服务器</item> -->
 <!--         <item>进入LOGO</item>      -->
     </string-array>
     
@@ -34,5 +33,7 @@
         <item>折叠</item>
         <item>渐变</item>
         <item>风车</item>
+        <item>缩小</item>
+        <item>挤压</item>
     </string-array>
 </resources>

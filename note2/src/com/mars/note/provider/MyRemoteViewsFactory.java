@@ -6,13 +6,16 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.mars.note.Editor;
-import com.mars.note.NoteApplication;
 import com.mars.note.R;
+import com.mars.note.api.Config;
+import com.mars.note.api.ImageSpanInfo;
+import com.mars.note.app.EditorActivity;
+import com.mars.note.app.NoteApplication;
 import com.mars.note.database.NoteDataBaseManager;
 import com.mars.note.database.NoteRecord;
-import com.mars.note.fragment.RecentRecordsFragment;
+import com.mars.note.fragment.RecentFragment;
 import com.mars.note.utils.PictureHelper;
+import com.mars.note.utils.Util;
 
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
@@ -29,8 +32,8 @@ public class MyRemoteViewsFactory implements RemoteViewsFactory {
 	public Context context;
 	public Intent intent;
 	private int widgetID;
-	List<NoteRecord> datas;
-	NoteDataBaseManager noteDBManager;
+	private List<NoteRecord> datas;
+	private NoteDataBaseManager noteDBManager;
 	private static LruCache<String, Bitmap> mBitmapCache;
 
 	public MyRemoteViewsFactory(Context applicationContext, Intent intent) {
@@ -38,7 +41,6 @@ public class MyRemoteViewsFactory implements RemoteViewsFactory {
 		this.intent = intent;
 		widgetID = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
 				AppWidgetManager.INVALID_APPWIDGET_ID);
-
 	}
 
 	@Override
@@ -66,6 +68,11 @@ public class MyRemoteViewsFactory implements RemoteViewsFactory {
 			NoteRecord nr = datas.get(pos);
 			String title = nr.title;
 			String content = nr.content;
+			byte[] data = nr.imageSpanInfos;
+			if (data != null) {
+				ArrayList<ImageSpanInfo> imageSpanInfoList = Util.getImageSpanInfoListFromBytes(data);
+				content = Util.filterContent(context,content, imageSpanInfoList);
+			}
 			String path = nr.imgpath;
 			Bitmap bm = null;
 
@@ -75,8 +82,15 @@ public class MyRemoteViewsFactory implements RemoteViewsFactory {
 			if (path != null && (!path.equals("null")) && (!"".equals(path))) {
 				if (mBitmapCache.get(path) == null) {
 
-					bm = PictureHelper.getCropImage(path, 400, true, 100,
-							context, 7, true);
+					if (Config.DB_SAVE_MODE) {
+						//‰ªéÊï∞ÊçÆÂ∫ìËØªÂõæ
+						bm = noteDBManager.getCroppedImage(path);
+						if(bm == null)
+							throw new NullPointerException("bm null error");
+					} else {
+						bm = PictureHelper.getCropImage(path, context.getResources().getDimension(R.dimen.listview_image_width),
+								context.getResources().getDimension(R.dimen.listview_image_height), true, 100, context, 7, true);
+					}
 					mBitmapCache.put(path, bm);
 
 				} else {
@@ -96,7 +110,7 @@ public class MyRemoteViewsFactory implements RemoteViewsFactory {
 				views.setViewVisibility(R.id.content2, View.GONE);
 			} else {
 				views.setTextViewText(R.id.content2, content);
-				views.setViewVisibility(R.id.img, View.GONE);//20141126 ∑˛”√conertviewµº÷¬Õº∆¨±ª÷ÿ”√
+				views.setViewVisibility(R.id.img, View.GONE);//20141126 ÔøΩÔøΩÔøΩÔøΩconertviewÔøΩÔøΩÔøΩÔøΩÕº∆¨ÔøΩÔøΩÔøΩÔøΩÔøΩÔøΩ
 				views.setViewVisibility(R.id.content2, View.VISIBLE);
 				views.setViewVisibility(R.id.content, View.GONE);
 			}
@@ -110,7 +124,7 @@ public class MyRemoteViewsFactory implements RemoteViewsFactory {
 					+ calendar.get(Calendar.DAY_OF_MONTH);
 			views.setTextViewText(R.id.date, date);
 
-			Intent intent = new Intent(context, Editor.class);
+			Intent intent = new Intent(context, EditorActivity.class);
 			intent.putExtra("note_id", nr.id);
 			views.setOnClickFillInIntent(R.id.root, intent);
 			// to fill PendingIntent in NoteCollectionsWidgetProvider
