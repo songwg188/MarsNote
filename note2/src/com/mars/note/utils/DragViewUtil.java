@@ -34,11 +34,11 @@ public class DragViewUtil {
 	 * @param dragView
 	 *            拖动的View
 	 */
-	public void startDrag(View primaryView, View dragView) {
+	public void startDrag(View primaryView, View dragView,int actionbarHeight) {
 		if (!isDragging) {
 			isDragging = true;
 			startX = primaryView.getLeft();
-			startY = primaryView.getTop();
+			startY = primaryView.getTop()+actionbarHeight;
 			windowParams.gravity = Gravity.TOP | Gravity.LEFT;
 			//窗口透明
 			windowParams.format = PixelFormat.RGBA_8888; 
@@ -49,13 +49,12 @@ public class DragViewUtil {
 			windowParams.alpha = 0.8f;
 			windowParams.flags = WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS | 0x00000010;
 			windowManager.addView(dragView, windowParams);
-//			Logg.D("startDrag windowParams.x " + windowParams.x + " windowParams.y " + windowParams.y);
+			Logg.D("startDrag windowParams.x " + windowParams.x + " windowParams.y " + windowParams.y);
 		}
 	}
 
 	/**
 	 * 拖动中
-	 * 
 	 * @param x
 	 * @param y
 	 * @param primaryView
@@ -64,7 +63,7 @@ public class DragViewUtil {
 	public void drag(int x, int y, View primaryView, View dragView) {
 		windowParams.x = x + startX;
 		windowParams.y = y + startY;
-//		Logg.D("drag windowParams.x " + windowParams.x + " windowParams.y " + windowParams.y);
+		Logg.D("drag windowParams.x " + windowParams.x + " windowParams.y " + windowParams.y);
 		windowManager.updateViewLayout(dragView, windowParams);
 	}
 

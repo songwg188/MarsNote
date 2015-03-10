@@ -8,7 +8,7 @@ import android.support.v4.app.Fragment;
  * @version 1.1
  */
 public abstract class BaseFragment extends Fragment{
-	public abstract void setCallBack(CallBack cb);
+//	public abstract void setCallBack(CallBack cb);
 	
 	public interface CallBack {
 	}

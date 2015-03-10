@@ -39,6 +39,7 @@ public class CalendarItemFragment extends BaseFragment implements
 	public void onAttach(Activity mActivity) {
 		super.onAttach(mActivity);
 		this.mActivity = mActivity;
+		mCallBack = (CallBack)mActivity;
 	}
 	
 
@@ -88,8 +89,8 @@ public class CalendarItemFragment extends BaseFragment implements
 		abstract void onChangeSelectedDate(int year, int month, int day);
 	}
 
-	@Override
-	public void setCallBack(com.mars.note.fragment2.BaseFragment.CallBack cb) {
-		mCallBack = (CallBack) cb;
-	}
+//	@Override
+//	public void setCallBack(com.mars.note.fragment2.BaseFragment.CallBack cb) {
+//		mCallBack = (CallBack) cb;
+//	}
 }

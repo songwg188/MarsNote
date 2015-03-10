@@ -22,23 +22,27 @@ public class FileHelper {
 	public static final String XMLSuffix = "_mars_note_text.xml";
 	
 	public static void copyFile(File src, File dest) {
+		long begin = System.currentTimeMillis();
 		try {
 			int bytesum = 0;
 			int byteread = 0;
 			if (src.exists()) {
 				InputStream inStream = new FileInputStream(src.getPath());
 				FileOutputStream fs = new FileOutputStream(dest.getPath());
-				byte[] buffer = new byte[1024];
-				int length;
+				byte[] buffer = new byte[2048];
 				while ((byteread = inStream.read(buffer)) != -1) {
 					bytesum += byteread;
 					System.out.println(bytesum);
 					fs.write(buffer, 0, byteread);
 				}
+				fs.flush();
+				fs.close();
 				inStream.close();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+		}finally{
+			Logg.D("copyFile using "+(System.currentTimeMillis()-begin)/1000);
 		}
 	}
 

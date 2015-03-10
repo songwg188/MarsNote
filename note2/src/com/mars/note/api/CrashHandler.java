@@ -57,7 +57,7 @@ public class CrashHandler implements UncaughtExceptionHandler {
 			System.exit(1);
 		}
 	}
-	private boolean handleException(Throwable ex) {
+	private boolean handleException(final Throwable ex) {
 		if (ex == null) {
 			return false;
 		}
@@ -121,7 +121,7 @@ public class CrashHandler implements UncaughtExceptionHandler {
 		try {
 			long timestamp = System.currentTimeMillis();
 			String time = formatter.format(new Date());
-			String fileName = "crash-" + time + "-" + timestamp + ".log";
+			String fileName = "crash-" + time + "-" + timestamp + "-log.txt";
 			if (Environment.getExternalStorageState().equals(
 					Environment.MEDIA_MOUNTED)) {
 				String path = BACKUP_PATH;

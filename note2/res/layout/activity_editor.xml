@@ -5,8 +5,8 @@
     android:background="@drawable/bg"
     android:focusable="true"
     android:focusableInTouchMode="true"
-    android:id="@+id/root"
     android:orientation="vertical"
+    android:id="@+id/root"
     tools:context=".EditorActivity" >
 
     <View
@@ -28,6 +28,8 @@
             android:id="@+id/scrollView1"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
             android:fadingEdge="none"
             android:fillViewport="true"
             android:overScrollMode="never"
@@ -38,8 +40,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:paddingLeft="@dimen/activity_horizontal_margin"
-                android:paddingRight="@dimen/activity_horizontal_margin" >
+                >
 
                 <!-- 20141208 图文混排后废除顶部图片框 -->
                 <!-- <FrameLayout -->

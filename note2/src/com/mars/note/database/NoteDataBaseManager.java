@@ -145,7 +145,6 @@ public class NoteDataBaseManager {
 		Logg.S("getCroppedImage error path " + path);
 		c.close();
 		return null;
-		// throw new NullPointerException("bitmap not found from sqlite ...");
 	}
 
 	/**

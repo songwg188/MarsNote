@@ -22,6 +22,7 @@ import com.mars.note.app.NoteApplication;
 import com.mars.note.database.NoteDataBaseManager;
 import com.mars.note.database.NoteRecord;
 import com.mars.note.fragment.RecentFragment;
+import com.mars.note.utils.DragViewUtil;
 import com.mars.note.utils.Logg;
 import com.mars.note.utils.PictureHelper;
 import com.mars.note.utils.Util;
@@ -40,8 +41,10 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnLongClickListener;
+import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
@@ -71,6 +74,16 @@ public class GridViewItemFragment extends BaseFragment {
 	private ConcurrentHashMap<String, Boolean> mConcurentMap;
 	private ReentrantLock mLock;// 同步锁
 
+	// 拖拽工具类
+	private DragViewUtil dragViewUtil;
+	// 拖拽时被隐藏的View
+	private View primaryView;
+	// 拖拽时跟随手指的View
+	private View dragView;
+	private boolean isInDeleteArea = false;
+	private int oldX, oldY;
+	public static boolean isDragging = false;
+
 	public GridViewItemFragment() {
 	}
 
@@ -85,6 +98,8 @@ public class GridViewItemFragment extends BaseFragment {
 	public void onAttach(Activity mActivity) {
 		super.onAttach(mActivity);
 		this.mActivity = mActivity;
+		mCallBack = (CallBack)mActivity;
+		dragViewUtil = new DragViewUtil(mActivity);
 	}
 
 	@Override
@@ -132,6 +147,28 @@ public class GridViewItemFragment extends BaseFragment {
 			private void setListener(final View convertView, final NoteRecord nr) {
 				// 长按监听
 				OnLongClickListener mOnLongClickListener = new OnLongClickListener() {
+
+					private void updateDragView(View primaryView) {
+						dragView = LayoutInflater.from(mActivity).inflate(R.layout.gridview_item, null, false);
+						dragView.setBackgroundResource(R.drawable.rounded_rectangle_pressed_gray);
+						dragView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+
+						ViewHolder primaryHolder = (ViewHolder) primaryView.getTag();
+						ViewHolder dragHolder = new ViewHolder();
+						dragHolder.date = (TextView) dragView.findViewById(R.id.date);
+						dragHolder.title = (TextView) dragView.findViewById(R.id.title);
+						dragHolder.content = (TextView) dragView.findViewById(R.id.content);
+						dragHolder.img = (ImageView) dragView.findViewById(R.id.note_listitem_img);
+
+						dragHolder.date.setText(primaryHolder.date.getText());
+						dragHolder.title.setText(primaryHolder.title.getText());
+						dragHolder.content.setText(primaryHolder.content.getText());
+						dragHolder.content.setMaxLines(primaryHolder.content.getMaxLines());
+						// Bitmap bm = mBitmapCache.get(path);
+						dragHolder.img.setBackground(primaryHolder.img.getDrawable());
+						dragHolder.img.setVisibility(primaryHolder.img.getVisibility());
+					}
+
 					@Override
 					public boolean onLongClick(View v) {
 						if (!RecentFragment.isDeleteUIShown) {
@@ -149,6 +186,14 @@ public class GridViewItemFragment extends BaseFragment {
 							if (mCallBack != null) {
 								mCallBack.showDeleteUI();
 							}
+
+							// 拖拽删除开始
+							primaryView = v;
+							primaryView.setVisibility(View.INVISIBLE);
+							updateDragView(primaryView);
+							dragViewUtil.startDrag(primaryView, dragView,mCallBack.getTitleBarHeight());
+							isDragging = true;
+
 						} else {
 							int position = ((ViewHolder) v.getTag()).position;
 							int arrayPos = position + (index - 1) * 6;
@@ -192,6 +237,59 @@ public class GridViewItemFragment extends BaseFragment {
 					}
 				};
 				convertView.setOnClickListener(mOnClickListener);
+
+				convertView.setOnTouchListener(new OnTouchListener() {
+					@Override
+					public boolean onTouch(View v, MotionEvent event) {
+						if (event.getAction() == MotionEvent.ACTION_DOWN) {
+							oldX = (int) event.getRawX();
+							oldY = (int) event.getRawY();
+							Logg.D("onTouch ACTION_DOWN oldX " + oldX + " oldY " + oldY);
+						}
+
+						if (dragView != null && primaryView != null) {
+							switch (event.getAction()) {
+
+							case MotionEvent.ACTION_MOVE:
+								dragViewUtil.drag((int) event.getRawX() - oldX, (int) event.getRawY() - oldY, primaryView, dragView);
+								int moveX = (int) event.getRawX();
+								int moveY = (int) event.getRawY();
+//								Logg.D("getX " + (int) event.getRawX() + ", getY " + (int) event.getRawY());
+								// Logg.D("caculateViewLocation x " +
+								int[] location = new  int[2];
+								RecentFragment.BOTTOM_LAYOUT.getLocationOnScreen(location);
+//								 Logg.D("caculateViewLocation y " +getResources().getDimension(R.dimen.bottom_delete_y));
+								if (moveX > RecentFragment.BOTTOM_LAYOUT.getLeft() && moveX < RecentFragment.BOTTOM_LAYOUT.getRight()
+										&& moveY > (location[1]-Util.dpToPx(getResources(), 5))) {
+									dragView.setBackgroundResource(R.drawable.list_item_bg_deleted);
+									RecentFragment.bottom_batch_delete_btn.setBackgroundResource(R.drawable.list_item_bg_pressed);
+									isInDeleteArea = true;
+									// Logg.D("in delete area");
+								} else {
+									dragView.setBackgroundResource(R.drawable.list_item_bg_pressed);
+									RecentFragment.bottom_batch_delete_btn.setBackgroundResource(R.drawable.list_item_bg_normal);
+									isInDeleteArea = false;
+									// Logg.D("out of delete area");
+								}
+								return true;
+							case MotionEvent.ACTION_UP:
+								Logg.D("onTouch ACTION_UP oldX " + oldX + " oldY " + oldY);
+								if (primaryView != null) {
+									primaryView.setVisibility(View.VISIBLE);
+									primaryView = null;
+									dragViewUtil.stopDrag(dragView);
+									isDragging = false;
+									if (isInDeleteArea) {
+										Intent intent = new Intent(RecentFragment.BATCH_DELETE);
+										mActivity.sendBroadcast(intent);
+									}
+								}
+								break;
+							}
+						}
+						return false;
+					}
+				});
 			}
 
 			@Override
@@ -245,14 +343,14 @@ public class GridViewItemFragment extends BaseFragment {
 					 * 存在图片的情况： 1、有图 3、图片本地已被删除
 					 */
 					ArrayList<ImageSpanInfo> imageSpanInfoList = Util.getImageSpanInfoListFromBytes(data);
-					
+
 					if (imageSpanInfoList.size() > 0) {
 						// 1、只有一张图的情况
 						holder.title.setVisibility(View.VISIBLE);
 						holder.content.setVisibility(View.VISIBLE);
 						holder.title.setText(nr.title);
 						String content = nr.content;
-						content = Util.filterContent(mActivity,content, imageSpanInfoList);
+						content = Util.filterContent(mActivity, content, imageSpanInfoList);
 						holder.content.setText(content);
 
 						final String path = nr.imgpath;
@@ -298,12 +396,13 @@ public class GridViewItemFragment extends BaseFragment {
 													mLock.unlock();
 													if (path != null && (!path.equals("null")) && (!"".equals(path))) {
 														if (Config.DB_SAVE_MODE) {
-															//从数据库读图
+															// 从数据库读图
 															item.bm = noteDBManager.getCroppedImage(path);
-															if(item.bm == null)
+															if (item.bm == null)
 																throw new NullPointerException("bm null error");
 														} else {
-															item.bm = PictureHelper.getCropImage(path, getResources().getDimension(R.dimen.listview_image_width),
+															item.bm = PictureHelper.getCropImage(path, getResources()
+																	.getDimension(R.dimen.listview_image_width),
 																	getResources().getDimension(R.dimen.listview_image_height), true, 100, mActivity, 7, true);
 														}
 														if (item.bm != null) {
@@ -437,29 +536,80 @@ public class GridViewItemFragment extends BaseFragment {
 			}
 		};
 		gridView.setAdapter(mAdapter);
+		gridView.setOnTouchListener(new OnTouchListener() {
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+
+				if (dragView != null && primaryView != null) {
+					switch (event.getAction()) {
+					 case MotionEvent.ACTION_MOVE:
+//					 dragViewUtil.drag((int) event.getX() - oldX, (int)
+//					 event.getY() - oldY, primaryView, dragView);
+//					 int moveX = (int) event.getX();
+//					 int moveY = (int) event.getY();
+//					 Logg.D("getX " + (int) event.getX() + ", getY " + (int)
+//					 event.getY());
+//					 Logg.D("caculateViewLocation x " + bottom_layout.getX());
+//					 Logg.D("caculateViewLocation y " + bottom_layout.getY());
+//					 if (moveX > bottom_layout.getLeft() && moveX <
+//					 bottom_layout.getRight()
+//					 && moveY > (bottom_layout.getY() -
+//					 getResources().getDimension(R.dimen.bottom_drag_margin)))
+//					 {
+//					 dragView.setBackgroundResource(R.drawable.list_item_bg_deleted);
+//					 bottom_batch_delete_btn.setBackgroundResource(R.drawable.list_item_bg_pressed);
+//					 isInDeleteArea = true;
+//					 // Logg.D("in delete area");
+//					 } else {
+//					 dragView.setBackgroundResource(R.drawable.list_item_bg_pressed);
+//					 bottom_batch_delete_btn.setBackgroundResource(R.drawable.list_item_bg_normal);
+//					 isInDeleteArea = false;
+//					 // Logg.D("out of delete area");
+//					 }
+					 return true;
+					case MotionEvent.ACTION_UP:
+						Logg.D("onTouch ACTION_UP oldX " + oldX + " oldY " + oldY);
+						if (primaryView != null) {
+							primaryView.setVisibility(View.VISIBLE);
+							primaryView = null;
+							dragViewUtil.stopDrag(dragView);
+							// if (isInDeleteArea) {
+							// batchDeleteNote();
+							// }
+						}
+						break;
+					case MotionEvent.ACTION_DOWN:
+						Logg.D("onTouch ACTION_DOWN oldX " + oldX + " oldY " + oldY);
+						break;
+					}
+				}
+				return false;
+			}
+		});
 		return v;
 	}
 
 	@Override
 	public void onResume() {
 		super.onResume();
-		if(DEBUG)
-		Log.d(TAG, "onResume");
+		if (DEBUG)
+			Log.d(TAG, "onResume");
 	}
 
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		if(DEBUG)
-		Log.d(TAG, "onDestroy");
+		if (DEBUG)
+			Log.d(TAG, "onDestroy");
 	}
 
 	public interface CallBack extends com.mars.note.fragment2.BaseFragment.CallBack {
 		public abstract void showDeleteUI();
+		public abstract int getTitleBarHeight();
 	}
 
-	@Override
-	public void setCallBack(com.mars.note.fragment2.BaseFragment.CallBack cb) {
-		mCallBack = (CallBack) cb;
-	}
+//	@Override
+//	public void setCallBack(com.mars.note.fragment2.BaseFragment.CallBack cb) {
+//		mCallBack = (CallBack) cb;
+//	}
 }

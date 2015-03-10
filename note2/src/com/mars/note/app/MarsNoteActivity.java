@@ -9,6 +9,7 @@ import com.mars.note.api.FragmentFactory;
 import com.mars.note.fragment.CalendarFragment;
 import com.mars.note.fragment.RecentFragment;
 import com.mars.note.fragment.SearchFragment;
+import com.mars.note.fragment2.GridViewItemFragment.CallBack;
 import com.mars.note.utils.Logg;
 import com.mars.note.views.JazzyViewPager;
 import com.mars.note.views.JazzyViewPager.TransitionEffect;
@@ -37,7 +38,7 @@ import android.widget.Scroller;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MarsNoteActivity extends FragmentActivity implements FragmentCallBack {
+public class MarsNoteActivity extends FragmentActivity implements FragmentCallBack, CallBack, com.mars.note.fragment2.CalendarItemFragment.CallBack {
 	public static final String TAG = "MarsNoteActivity";
 
 	public static final int SETTINGS = 3;
@@ -104,10 +105,10 @@ public class MarsNoteActivity extends FragmentActivity implements FragmentCallBa
 		int screenHeight = dm.heightPixels;
 		float density = dm.density; // 屏幕密度（0.75 / 1.0 / 1.5）
 		int densityDpi = dm.densityDpi; // 屏幕密度DPI（120 / 160 / 240）
-//		Logg.I("screenWidth = " + screenWidth);
-//		Logg.I("screenHeight = " + screenHeight);
-//		Logg.I("density = " + density);
-//		Logg.I("densityDpi = " + densityDpi);
+		// Logg.I("screenWidth = " + screenWidth);
+		// Logg.I("screenHeight = " + screenHeight);
+		// Logg.I("density = " + density);
+		// Logg.I("densityDpi = " + densityDpi);
 	}
 
 	private void validate() {
@@ -461,17 +462,33 @@ public class MarsNoteActivity extends FragmentActivity implements FragmentCallBa
 	}
 
 	public void openInfo(View v) {
-		Toast.makeText(this,R.string.product_info , 3000).show();
-//		if (dialog == null){
-//			View dialogView = LayoutInflater.from(this).inflate(R.layout.info_dialog, null, false);
-//			TextView title = (TextView) dialogView.findViewById(R.id.text);
-//			title.setText(R.string.product_info);
-//			dialog = MarsDialogFactory.getPopupWindow(this, dialogView);
-//		}
-//		
-//		if(dialog.isShowing())
-//			return;
-//		else
-//			dialog.showAtLocation(mDrawerLayout, Gravity.CENTER, 0, 0);
+		Toast.makeText(this, R.string.product_info, 3000).show();
+		// if (dialog == null){
+		// View dialogView =
+		// LayoutInflater.from(this).inflate(R.layout.info_dialog, null, false);
+		// TextView title = (TextView) dialogView.findViewById(R.id.text);
+		// title.setText(R.string.product_info);
+		// dialog = MarsDialogFactory.getPopupWindow(this, dialogView);
+		// }
+		//
+		// if(dialog.isShowing())
+		// return;
+		// else
+		// dialog.showAtLocation(mDrawerLayout, Gravity.CENTER, 0, 0);
+	}
+
+	@Override
+	public void showDeleteUI() {
+		mRecentRecordsFragment.showBatchDeleteUI();
+	}
+
+	@Override
+	public int getTitleBarHeight() {
+		return mRecentRecordsFragment.getTitleBarHeight();
+	}
+
+	@Override
+	public void onChangeSelectedDate(int year, int month, int day) {
+		mCalendarFragment.onChangeSelectedDate(year, month, day);
 	}
 }

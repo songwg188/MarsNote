@@ -92,7 +92,9 @@
                     android:paddingLeft="10dp"
                     android:paddingRight="10dp"
                     android:scrollbars="none"
-                    android:visibility="gone" />
+                    android:visibility="gone" 
+                    android:layoutAnimation="@anim/list_layout_animation"  
+                    />
                 <!-- android:overScrollMode="always" 开启边缘模式，才能有回弹效果 -->
 
                 <com.mars.note.views.JazzyViewPager
@@ -108,7 +110,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:indeterminate="true"
-                    android:visibility="visible" />
+                    android:visibility="invisible" />
 
                 <TextView
                     android:id="@+id/empty_text"

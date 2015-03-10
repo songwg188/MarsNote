@@ -20,7 +20,6 @@ import android.os.Handler;
 import android.provider.MediaStore;
 import android.app.ActionBar;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.appwidget.AppWidgetManager;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
@@ -61,6 +60,7 @@ import com.mars.note.api.BaseActivity;
 import com.mars.note.api.Config;
 import com.mars.note.api.ImageSpanInfo;
 import com.mars.note.api.AlertDialogFactory;
+import com.mars.note.api.ProgressDialogFactory;
 import com.mars.note.database.*;
 import com.mars.note.utils.FileHelper;
 import com.mars.note.utils.Logg;
@@ -116,7 +116,6 @@ public class EditorActivity extends BaseActivity implements android.view.View.On
 	 */
 	private static ReentrantLock mTHUMBNAILS_LOCK;
 	private CountDownLatch mTHUMBNAILS_LATCH, mContentLatch;
-	private ProgressDialog mExecutingDialog;
 	private int saveToDBType = 0;
 
 	View rootView;
@@ -155,7 +154,6 @@ public class EditorActivity extends BaseActivity implements android.view.View.On
 		titleText = (EditText) this.findViewById(R.id.titleText);
 		contentText = (EditText) this.findViewById(R.id.contentText);
 		initPopupWindow();
-		initExecutingDialog();
 
 		mIntent = getIntent();
 		appWidgetId = mIntent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1);
@@ -178,18 +176,12 @@ public class EditorActivity extends BaseActivity implements android.view.View.On
 		}
 	}
 
-	private void initExecutingDialog() {
-		mExecutingDialog = new ProgressDialog(this);
-		mExecutingDialog.setMessage(getString(R.string.dialog_executing_message));
-		mExecutingDialog.setCancelable(false);
-	}
-
 	private void showExectingDialog() {
-		mExecutingDialog.show();
+		ProgressDialogFactory.showProgressDialog(this, rootView);
 	}
 
 	private void dissmissExecutingDialog() {
-		mExecutingDialog.dismiss();
+		ProgressDialogFactory.dismissProgressDialog();
 	}
 
 	private void initPopupWindow() {

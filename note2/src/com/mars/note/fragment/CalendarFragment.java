@@ -62,7 +62,8 @@ import android.widget.TextView;
  * @author mars
  * 
  */
-public class CalendarFragment extends BaseFragment implements OnClickListener, ViewPager.OnPageChangeListener, CalendarItemFragment.CallBack {
+public class CalendarFragment extends BaseFragment 
+implements OnClickListener, ViewPager.OnPageChangeListener/*, CalendarItemFragment.CallBack*/ {
 	private static final String TAG = "CalendarFragment";
 	private static final boolean DEBUG = false;
 	private Activity mActivity;
@@ -378,7 +379,7 @@ public class CalendarFragment extends BaseFragment implements OnClickListener, V
 			// 不要用构造方法传递参数 ，用getArguments，见onCreate
 			// 这里用Fragment实现回调，因为嵌套的Fragment生命周期时小于本Fragment的
 			ci.setArguments(bundle);
-			ci.setCallBack(CalendarFragment.this);
+//			ci.setCallBack(CalendarFragment.this); //Nullpointer 概率性
 			return ci;
 		}
 
@@ -411,7 +412,6 @@ public class CalendarFragment extends BaseFragment implements OnClickListener, V
 	 * com.mars.note.fragment.CalendarItem.CallBack#onChangeSelectedDate(int,
 	 * int, int)
 	 */
-	@Override
 	public void onChangeSelectedDate(int year, int month, int day) {
 		// 如果点击的日期一样，不做处理
 		if (calendar_selected_year == year && calendar_selected_month == month && calendar_selected_day == day) {

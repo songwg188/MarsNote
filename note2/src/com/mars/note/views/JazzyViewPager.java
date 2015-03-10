@@ -21,6 +21,7 @@ import android.view.View;
 import android.view.animation.TranslateAnimation;
 
 import com.mars.note.R;
+import com.mars.note.fragment2.GridViewItemFragment;
 import com.mars.note.utils.Logg;
 import com.mars.note.utils.Util;
 import com.nineoldandroids.view.ViewHelper;
@@ -163,7 +164,7 @@ public class JazzyViewPager extends ViewPager {
 	 */
 	@Override
 	public boolean onInterceptTouchEvent(MotionEvent ev) {
-		if (isTouchable) {
+		if (isTouchable && !GridViewItemFragment.isDragging) {
 			boolean result = super.onInterceptTouchEvent(ev);
 			if (ev.getAction() == MotionEvent.ACTION_DOWN) {
 				preX = ev.getX();

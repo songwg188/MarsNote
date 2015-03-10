@@ -20,6 +20,6 @@ public class Logg {
 	}
 	
 	public static void E(String str){
-		android.util.Log.i(TAG+"_E", str);
+		android.util.Log.e(TAG+"_E", str);
 	}
 }

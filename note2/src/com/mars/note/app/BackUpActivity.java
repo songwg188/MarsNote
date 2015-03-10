@@ -12,13 +12,13 @@ import com.mars.note.api.BaseFile;
 import com.mars.note.api.Config;
 import com.mars.note.api.Folder;
 import com.mars.note.api.AlertDialogFactory;
+import com.mars.note.api.ProgressDialogFactory;
 import com.mars.note.database.NoteDBField;
 import com.mars.note.database.NoteDataBaseManager;
 import com.mars.note.utils.FileHelper;
 import com.mars.note.utils.Logg;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -60,7 +60,6 @@ public class BackUpActivity extends BaseActivity {
 	private String[] time_title;
 	private LinearLayout listDescription;
 	private NoteDataBaseManager noteDBManager;
-	private ProgressDialog mExecutingDialog;
 	private Handler mHandler;
 	BroadcastReceiver mBroadCastReceiver;
 	Intent serviceIntent;
@@ -86,7 +85,6 @@ public class BackUpActivity extends BaseActivity {
 		listDescription.setPadding(20, 20, 20, 0);
 		// mListView.addHeaderView(listDescription);
 		mListView.setAdapter(mAdapter);
-		initExecutingDialog();
 		mHandler = new Handler();
 		serviceIntent = new Intent(BackUpActivity.this, DBService.class);
 		serviceIntent.putExtra("updateThumbnailsCount", true);
@@ -94,39 +92,35 @@ public class BackUpActivity extends BaseActivity {
 
 		IntentFilter intentFilter = new IntentFilter();
 		intentFilter.addAction("com.mars.note.updateThumbnailsCount.finished");
-		mBroadCastReceiver = new BroadcastReceiver() {
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				if (DEBUG)
-					Logg.S("BackUpActivity receive Broadcast");
-				mHandler.post(new Runnable() {
-					@Override
-					public void run() {
-						// TODO Auto-generated method stub
-						Toast.makeText(BackUpActivity.this, BackUpActivity.this.getText(R.string.toast_success), 1000).show();
-						noteDBManager.refreshWidgetCollections();
-						BackUpActivity.this.stopService(serviceIntent);
-						dissmissExecutingDialog();
-						Config.NEED_DB_SERVICE = false;
-					}
-				});
-			}
-		};
+		mBroadCastReceiver = new Receiver();
 		registerReceiver(mBroadCastReceiver, intentFilter);
 	}
-
-	private void initExecutingDialog() {
-		mExecutingDialog = new ProgressDialog(this);
-		mExecutingDialog.setMessage(getString(R.string.dialog_executing_message));
-		mExecutingDialog.setCancelable(false);
+	
+	private class Receiver extends BroadcastReceiver{
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			if (DEBUG)
+				Logg.S("BackUpActivity receive Broadcast");
+			mHandler.post(new Runnable() {
+				@Override
+				public void run() {
+					// TODO Auto-generated method stub
+					Toast.makeText(BackUpActivity.this, BackUpActivity.this.getText(R.string.toast_success), 1000).show();
+					noteDBManager.refreshWidgetCollections();
+					BackUpActivity.this.stopService(serviceIntent);
+					dissmissExecutingDialog();
+					Config.NEED_DB_SERVICE = false;
+				}
+			});
+		}
 	}
 
 	private void showExectingDialog() {
-		mExecutingDialog.show();
+		ProgressDialogFactory.showProgressDialog(this, mListView);
 	}
 
 	private void dissmissExecutingDialog() {
-		mExecutingDialog.dismiss();
+		ProgressDialogFactory.dismissProgressDialog();
 	}
 
 	@Override
@@ -222,23 +216,6 @@ public class BackUpActivity extends BaseActivity {
 					@Override
 					public void onClick(View v) {
 						final BaseFile f = mData.get(((Integer) v.getTag()).intValue());
-						// AlertDialog.Builder builder = new
-						// AlertDialog.Builder(BackUpActivity.this);
-						// builder.setMessage(BackUpActivity.this.getString(R.string.delete_backup_title)
-						// + "\n" + f.getName() + "?");
-						// builder.setPositiveButton(R.string.yes, new
-						// OnClickListener() {
-						// @Override
-						// public void onClick(DialogInterface arg0, int arg1) {
-						// boolean result = FileHelper.deleteFile(f.getPath());
-						// if (result) {
-						// onResume();
-						// } else {
-						// }
-						// }
-						// });
-						// builder.setNegativeButton(R.string.no, null);
-						// builder.show();
 
 						AlertDialogFactory.showAlertDialog(BackUpActivity.this, mListView, BackUpActivity.this.getString(R.string.delete_backup_title) + "\n"
 								+ f.getName() + "?", new AlertDialogFactory.DialogPositiveListner(){
@@ -260,48 +237,6 @@ public class BackUpActivity extends BaseActivity {
 					@Override
 					public void onClick(View v) {
 						final BaseFile f = mData.get(((Integer) v.getTag()).intValue());
-						// AlertDialog.Builder builder = new
-						// AlertDialog.Builder(BackUpActivity.this);
-						// builder.setMessage(BackUpActivity.this.getString(R.string.restore_backup_title,
-						// f.getName()));
-						// builder.setPositiveButton(R.string.yes, new
-						// OnClickListener() {
-						// @Override
-						// public void onClick(DialogInterface arg0, int arg1) {
-						// showExectingDialog();
-						// new Thread() {
-						// public void run() {
-						// File db =
-						// BackUpActivity.this.getDatabasePath(NoteDBField.DBNAME);
-						// File backup = new File(f.getPath());
-						// FileHelper.copyFile(backup, db);
-						// // 关闭DB
-						// NoteApplication.closeDB();
-						// // 重新开启DB
-						// NoteApplication.openDB();
-						// noteDBManager.clearWidgetsRelations();
-						// Config.recent_needRefresh = true;
-						// Config.search_needRefresh = true;
-						// Config.calendar_needRefresh = true;
-						// if (Config.NEED_DB_SERVICE) {
-						// BackUpActivity.this.startService(serviceIntent);
-						// } else {
-						// mHandler.post(new Runnable() {
-						// @Override
-						// public void run() {
-						// dissmissExecutingDialog();
-						// Toast.makeText(BackUpActivity.this,
-						// BackUpActivity.this.getText(R.string.toast_success),
-						// 1000).show();
-						// }
-						// });
-						// }
-						// };
-						// }.start();
-						// }
-						// });
-						// builder.setNegativeButton(R.string.no, null);
-						// builder.show();
 
 						AlertDialogFactory.showAlertDialog(BackUpActivity.this, mListView,
 								BackUpActivity.this.getString(R.string.restore_backup_title, f.getName()),
@@ -312,11 +247,13 @@ public class BackUpActivity extends BaseActivity {
 										showExectingDialog();
 										new Thread() {
 											public void run() {
+												// 关闭DB
+												NoteApplication.closeDB();
+												
 												File db = BackUpActivity.this.getDatabasePath(NoteDBField.DBNAME);
 												File backup = new File(f.getPath());
 												FileHelper.copyFile(backup, db);
-												// 关闭DB
-												NoteApplication.closeDB();
+												
 												// 重新开启DB
 												NoteApplication.openDB();
 												noteDBManager.clearWidgetsRelations();
@@ -389,34 +326,6 @@ public class BackUpActivity extends BaseActivity {
 						}.start();
 					}
 				});
-
-		//
-		// AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		// builder.setMessage(this.getString(R.string.add_new_record_title) +
-		// "\n" + fileName + "\n" +
-		// this.getString(R.string.add_new_record_title_2)
-		// + BACKUP_PATH + "?");
-		// builder.setPositiveButton(R.string.yes, new OnClickListener() {
-		// @Override
-		// public void onClick(DialogInterface arg0, int arg1) {
-		// showExectingDialog();
-		// new Thread() {
-		// public void run() {
-		// addNewBackUp(fileName);
-		// mHandler.post(new Runnable() {
-		// @Override
-		// public void run() {
-		// // TODO Auto-generated method stub
-		// onResume();
-		// dissmissExecutingDialog();
-		// }
-		// });
-		// };
-		// }.start();
-		// }
-		// });
-		// builder.setNegativeButton(R.string.no, null);
-		// builder.show();
 	}
 
 	private void addNewBackUp(String fileName) {

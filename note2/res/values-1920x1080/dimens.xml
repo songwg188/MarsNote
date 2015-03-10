@@ -12,4 +12,6 @@
     <dimen name="listview_image_height">120dp</dimen>
     <dimen name="gridview_image_width">81dp</dimen>
     <dimen name="gridview_image_height">90dp</dimen>
+    <dimen name="bottom_drag_margin">100px</dimen>
+    <dimen name="bottom_delete_y">1700px</dimen>
 </resources>

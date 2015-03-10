@@ -1,20 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="week_titles">       
+
+    <string-array name="week_titles">
         <item>周一</item>
         <item>周二</item>
         <item>周三</item>
         <item>周四</item>
         <item>周五</item>
         <item>周六</item>
-         <item>周日</item>
+        <item>周日</item>
     </string-array>
-    <string-array name="date_title">       
+    <string-array name="date_title">
         <item>年</item>
         <item>月</item>
         <item>日</item>
     </string-array>
-    <string-array name="time_title">       
+    <string-array name="time_title">
         <item>点</item>
         <item>分</item>
         <item>秒</item>
@@ -24,16 +25,16 @@
         <item>备份恢复</item>
         <item>文本导入导出</item>
         <item>加   密</item>
-<!--         <item>同步到服务器</item> -->
-<!--         <item>进入LOGO</item>      -->
+        <!-- <item>同步到服务器</item> -->
+        <!-- <item>进入LOGO</item> -->
     </string-array>
-    
     <string-array name="effects">
-        <item>默认</item>   
+        <item>默认</item>
         <item>折叠</item>
         <item>渐变</item>
         <item>风车</item>
         <item>缩小</item>
         <item>挤压</item>
     </string-array>
+
 </resources>

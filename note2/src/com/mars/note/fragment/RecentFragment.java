@@ -12,12 +12,14 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.mars.note.R;
+import com.mars.note.R.drawable;
 import com.mars.note.api.Config;
 import com.mars.note.api.FragmentCallBack;
 import com.mars.note.api.FragmentFactory;
 import com.mars.note.api.GridViewPaperItemForBatchDelete;
 import com.mars.note.api.ImageSpanInfo;
 import com.mars.note.api.AlertDialogFactory;
+import com.mars.note.api.ProgressDialogFactory;
 import com.mars.note.app.BackUpActivity;
 import com.mars.note.app.EditorActivity;
 import com.mars.note.app.MarsNoteActivity;
@@ -47,12 +49,14 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.util.LruCache;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
-import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -63,10 +67,12 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup.LayoutParams;
+import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
@@ -74,6 +80,7 @@ import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.Filter;
 import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.PopupWindow.OnDismissListener;
@@ -90,7 +97,7 @@ import android.widget.TextView;
  * 
  * @author mars
  */
-public class RecentFragment extends BaseFragment implements OnScrollListener, CallBack {
+public class RecentFragment extends BaseFragment implements OnScrollListener/*, CallBack*/ {
 	public static final String TAG = "RecentRecordsFragment";
 	private boolean DEBUG = false;
 	private Activity mActivity;
@@ -98,12 +105,13 @@ public class RecentFragment extends BaseFragment implements OnScrollListener, Ca
 	private ImageButton titlebar_add_note_btn; // 添加新笔记按钮
 	private ImageButton titlebar_overflow_options; // 显示菜单按钮
 	private ImageButton titlebar_batch_delete_imgbtn; // 批量删除按钮
-	private ImageButton bottom_batch_delete_btn; // 批量删除ui下，底部删除按钮
-	private View bottom_layout; // 底部布局
+	public static ImageButton bottom_batch_delete_btn; // 批量删除ui下，底部删除按钮
+	public static View BOTTOM_LAYOUT; // 底部布局
 	private CheckBox select_all_checkbox; // 选择全部复选框
 	private BounceListView listView_myNote; // 20141124 增加阻尼效果
 	private TextView textview_empty; // 空文本
-	private ProgressBar mProgressBar;
+	// private ProgressBar mProgressBar;
+	private ViewGroup titleBar;
 	private JazzyViewPager mGridPager; // 格子视图
 
 	private OnCheckedChangeListener mNoteCheckBoxListener;
@@ -119,7 +127,6 @@ public class RecentFragment extends BaseFragment implements OnScrollListener, Ca
 	private int currentPage = 1;
 	private int records_count;
 	private boolean isLoadMoreModel = false;
-	private ProgressDialog mExecutingDialog;
 	private boolean isFirstLoaded = true;
 	private static final int queryPageNum = 20;
 	private static final int MaxPageNum = 50;
@@ -148,6 +155,9 @@ public class RecentFragment extends BaseFragment implements OnScrollListener, Ca
 	private View primaryView;
 	// 拖拽时跟随手指的View
 	private View dragView;
+	private boolean isInDeleteArea = false;
+
+	Handler handler;
 
 	public static BaseFragment getInstance() {
 		return new RecentFragment();
@@ -167,14 +177,14 @@ public class RecentFragment extends BaseFragment implements OnScrollListener, Ca
 		super.onCreate(savedInstanceState);
 		initDBManager();
 		initListener();
-		initExecutingDialog();
-
+		handler = new Handler();
 		mBitmapCache = NoteApplication.getBitmapCache();
 		mConcurentMap = NoteApplication.getmConcurentMap();// 保存线程工作状态
 		mLock = NoteApplication.getmLock();// 20141212 公平锁
 
 		executors = NoteApplication.getExecutors();
 		if (executors == null) {
+			Logg.E("executors null error");
 			throw new NullPointerException("executors == null");
 		}
 
@@ -185,36 +195,17 @@ public class RecentFragment extends BaseFragment implements OnScrollListener, Ca
 		DPI = dm.density;
 
 		dragViewUtil = new DragViewUtil(mActivity);
-
-		// Logg.D("DPI "+DPI);
 	}
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		View v = inflater.inflate(R.layout.fragment_recent_records, container, false);
-		mProgressBar = (ProgressBar) v.findViewById(R.id.loading_progress);
+		// mProgressBar = (ProgressBar) v.findViewById(R.id.loading_progress);
 		initTitleBarView(v);
 		initAutoRefreshListView(v);
 		initGridPaper(v);
 		initEmptyView(v);
-		bottom_layout = v.findViewById(R.id.bottom);
-//		bottom_layout.setOnTouchListener(new OnTouchListener() {
-//			@Override
-//			public boolean onTouch(View v, MotionEvent e) {
-//				switch(e.getAction()){
-//				case MotionEvent.ACTION_DOWN:
-//					Logg.D("bottom_layout down");
-//					break;
-//				case MotionEvent.ACTION_MOVE:
-//					Logg.D("bottom_layout move");
-//					break;
-//				case MotionEvent.ACTION_UP:
-//					Logg.D("bottom_layout up");
-//					break;
-//				}
-//				return false;
-//			}
-//		});
+		BOTTOM_LAYOUT = v.findViewById(R.id.bottom);
 		bottom_batch_delete_btn = (ImageButton) v.findViewById(R.id.bottom_batch_delete_btn);
 		bindListener();
 		rootView = v;
@@ -252,14 +243,8 @@ public class RecentFragment extends BaseFragment implements OnScrollListener, Ca
 		noteDBManager = NoteApplication.getDbManager();
 	}
 
-	private void initExecutingDialog() {
-		mExecutingDialog = new ProgressDialog(mActivity);
-		mExecutingDialog.setMessage(getString(R.string.dialog_executing_message));
-		mExecutingDialog.setCancelable(false);
-	}
-
 	private void initTitleBarView(View v) {
-		// titleBar = (ViewGroup) v.findViewById(R.id.titlebar);
+		titleBar = (ViewGroup) v.findViewById(R.id.titlebar);
 		titlebar_add_note_btn = (ImageButton) v.findViewById(R.id.titlebar_add_note_btn);
 		titlebar_batch_delete_imgbtn = (ImageButton) v.findViewById(R.id.titlebar_batch_delete_btn);
 
@@ -396,9 +381,7 @@ public class RecentFragment extends BaseFragment implements OnScrollListener, Ca
 					openSettingsActivity();
 
 				} else if (v.getId() == R.id.titlebar_overflow_options) {
-
 					mCallBack.openDrawer();
-
 				} else if (v.getId() == R.id.calendar_fragment) {
 					if (mCallBack == null) {
 						throw new NullPointerException("mCallBack can't be null");
@@ -457,27 +440,36 @@ public class RecentFragment extends BaseFragment implements OnScrollListener, Ca
 				if (dragView != null && primaryView != null) {
 					switch (event.getAction()) {
 					case MotionEvent.ACTION_MOVE:
-						dragViewUtil.drag((int) event.getX() - oldX, (int) event.getY() - oldY, primaryView, dragView);
-						int moveX = (int)event.getRawX();
-						int moveY = (int)event.getRawY();
-						Logg.D("moveX "+ moveX +", moveY "+moveY);
-//						Logg.D("l "+ bottom_layout.getLeft() +", r "+bottom_layout.getRight());
-//						Logg.D("t "+ (screenHeight - bottom_layout.getBottom()) +", b "+(screenHeight - bottom_layout.getTop()));
-						if (moveX >bottom_layout.getLeft()&& moveX < bottom_layout.getRight()
-								&& moveY >(screenHeight - bottom_layout.getBottom())
-								&& moveY <(screenHeight - bottom_layout.getTop())) {
-							Logg.D("in delete area");
-						}else{
-							Logg.D("out of delete area");
+						dragViewUtil.drag((int) event.getRawX() - oldX, (int) event.getRawY() - oldY, primaryView, dragView);
+						int moveX = (int) event.getRawX();
+						int moveY = (int) event.getRawY();
+						int[] location = new int[2];
+						BOTTOM_LAYOUT.getLocationOnScreen(location);
+						// Logg.D("BOTTOM_LAYOUT getY " + location[1] +
+						// ", getY " + moveY);
+						if (moveX > RecentFragment.BOTTOM_LAYOUT.getLeft() && moveX < RecentFragment.BOTTOM_LAYOUT.getRight()
+								&& moveY > (location[1]-Util.dpToPx(getResources(), 5))) {
+							dragView.setBackgroundResource(R.drawable.list_item_bg_deleted);
+							bottom_batch_delete_btn.setBackgroundResource(R.drawable.list_item_bg_pressed);
+							isInDeleteArea = true;
+							// Logg.D("in delete area");
+						} else {
+							dragView.setBackgroundResource(R.drawable.list_item_bg_pressed);
+							bottom_batch_delete_btn.setBackgroundResource(R.drawable.list_item_bg_normal);
+							isInDeleteArea = false;
+							// Logg.D("out of delete area");
 						}
-						
 						return true;
 					case MotionEvent.ACTION_UP:
-//						Logg.D("onTouch ACTION_UP oldX " + oldX + " oldY " + oldY);
+						// Logg.D("onTouch ACTION_UP oldX " + oldX + " oldY " +
+						// oldY);
 						if (primaryView != null) {
 							primaryView.setVisibility(View.VISIBLE);
 							primaryView = null;
 							dragViewUtil.stopDrag(dragView);
+							if (isInDeleteArea) {
+								batchDeleteNote();
+							}
 						}
 						break;
 					}
@@ -501,9 +493,9 @@ public class RecentFragment extends BaseFragment implements OnScrollListener, Ca
 	public void onStart() {
 		super.onStart();
 		if (isDeleteUIShown) {
-			bottom_layout.setY(screenHeight - (getResources().getDimensionPixelSize(R.dimen.bottom_height)));
+			BOTTOM_LAYOUT.setY(screenHeight - (getResources().getDimensionPixelSize(R.dimen.bottom_height)));
 		} else {
-			bottom_layout.setY(screenHeight);
+			BOTTOM_LAYOUT.setY(screenHeight);
 		}
 	}
 
@@ -540,7 +532,7 @@ public class RecentFragment extends BaseFragment implements OnScrollListener, Ca
 
 				break;
 			}
-			mProgressBar.setVisibility(View.GONE);
+			// mProgressBar.setVisibility(View.GONE);
 			isFirstLoaded = false;
 			com.mars.note.api.Config.recent_needRefresh = false;
 			flag = true;
@@ -716,13 +708,13 @@ public class RecentFragment extends BaseFragment implements OnScrollListener, Ca
 			flag = false;
 			if (isFirstLoaded == true || com.mars.note.api.Config.recent_needRefresh) {
 				this.textview_empty.setVisibility(View.GONE);
-				this.mProgressBar.setVisibility(View.VISIBLE);
+				// this.mProgressBar.setVisibility(View.VISIBLE);
 				listView_myNote.setVisibility(View.GONE);
 				mGridPager.setVisibility(View.GONE);
 				records_count = noteDBManager.getMaxRecordsCount();
 
 				if (records_count == 0) {
-					this.mProgressBar.setVisibility(View.GONE);
+					// this.mProgressBar.setVisibility(View.GONE);
 					this.textview_empty.setVisibility(View.VISIBLE);
 					if (Config.current_theme == 1) {
 						setListView();
@@ -740,10 +732,14 @@ public class RecentFragment extends BaseFragment implements OnScrollListener, Ca
 		}
 		titleBarIn();
 		firstResume = false;
+		IntentFilter mFilter = new IntentFilter();
+		mFilter.addAction(BATCH_DELETE);
+		mActivity.registerReceiver(mBroadcastReceiver, mFilter);
 	}
 
 	@Override
 	public void onPause() {
+		mActivity.unregisterReceiver(mBroadcastReceiver);
 		super.onPause();
 	}
 
@@ -779,7 +775,7 @@ public class RecentFragment extends BaseFragment implements OnScrollListener, Ca
 		Context mContext;
 		LayoutInflater inflate;
 		List<NoteRecord> mData;
-		Handler handler;
+
 		OnLongClickListener mOnLongClickListener;
 		OnClickListener mOnClickListener;
 		StringBuilder date, time;
@@ -789,7 +785,6 @@ public class RecentFragment extends BaseFragment implements OnScrollListener, Ca
 			mContext = context;
 			inflate = LayoutInflater.from(context);
 			mData = list;
-			handler = new Handler();
 			date = new StringBuilder();
 			time = new StringBuilder();
 			calendar = Calendar.getInstance();
@@ -806,17 +801,17 @@ public class RecentFragment extends BaseFragment implements OnScrollListener, Ca
 		}
 
 		private void caculateViewLocation(View v) {
-//			int[] location = new int[2];
-//			v.getLocationOnScreen(location);
-//			int x = location[0];
-//			int y = location[1];
-			Logg.D("l " + v.getLeft());
-			Logg.D("r " + v.getRight());
-			Logg.D("t " + v.getTop());
-			Logg.D("b " + v.getBottom());
-			Logg.D("w " + v.getWidth());
-			Logg.D("h " + v.getHeight());
-			
+			// int[] location = new int[2];
+			// v.getLocationOnScreen(location);
+			// int x = location[0];
+			// int y = location[1];
+			// Logg.D("caculateViewLocation x " + x);
+			// Logg.D("caculateViewLocation y " + y);
+			// Logg.D("screen width " + screenWidth);
+			// Logg.D("screen height " + screenHeight);
+			Logg.D("caculateViewLocation x " + v.getX());
+			Logg.D("caculateViewLocation y " + v.getY());
+
 		}
 
 		@Override
@@ -989,6 +984,7 @@ public class RecentFragment extends BaseFragment implements OnScrollListener, Ca
 			}
 
 			// 20141214 bug 这里会有小卡顿 begin
+			// 此bug是布局过于复杂引起，改用LinearLayout代替RelativeLayout
 			calendar.setTimeInMillis(Long.parseLong(nr.time));
 			// StringBuilder非线程安全，这里是主线程在跑 StringBuffer 线程安全
 			date.setLength(0);
@@ -1009,6 +1005,12 @@ public class RecentFragment extends BaseFragment implements OnScrollListener, Ca
 				content = Util.filterContent(mActivity, content, imageSpanInfoList);
 			}
 			holder.content.setText(content);
+			// if(holder.content.getLineCount() > 4){
+			// int lineEndIndex = holder.content.getLayout().getLineEnd(3);
+			// String text = holder.content.getText().subSequence(0,
+			// lineEndIndex - 3) + "...";
+			// holder.content.setText(text);
+			// }
 			// 20141215 过滤图片字符串 end
 
 			// 设置长按 点击 checkbox的监听器
@@ -1044,11 +1046,13 @@ public class RecentFragment extends BaseFragment implements OnScrollListener, Ca
 						CheckBox cb = ((ViewHolder) v.getTag()).checkBox;
 						cb.setChecked(true);
 						updateListItemCheckBoxStatus(((ViewHolder) convertView.getTag()).position, true);
+						// 拖拽删除开始
 						primaryView = v;
 						primaryView.setVisibility(View.INVISIBLE);
 						updateDragView(primaryView);
-						dragViewUtil.startDrag(primaryView, dragView);
-						caculateViewLocation(bottom_layout);
+
+						dragViewUtil.startDrag(primaryView, dragView, getTitleBarHeight());
+						// caculateViewLocation(BOTTOM_LAYOUT);
 					}
 					return true;
 				}
@@ -1056,8 +1060,8 @@ public class RecentFragment extends BaseFragment implements OnScrollListener, Ca
 				private void updateDragView(View primaryView) {
 					dragView = LayoutInflater.from(mActivity).inflate(R.layout.note_list_item, null, false);
 					dragView.setBackgroundResource(R.drawable.list_item_bg_pressed);
-					dragView.setLayerType(View.LAYER_TYPE_SOFTWARE,null); 
-					
+					dragView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+
 					ViewHolder primaryHolder = (ViewHolder) primaryView.getTag();
 					ViewHolder dragHolder = new ViewHolder();
 					dragHolder.date = (TextView) dragView.findViewById(R.id.date);
@@ -1073,8 +1077,13 @@ public class RecentFragment extends BaseFragment implements OnScrollListener, Ca
 					dragHolder.title.setText(primaryHolder.title.getText());
 					dragHolder.content.setText(primaryHolder.content.getText());
 					dragHolder.titleAndContent.getLayoutParams().width = primaryHolder.titleAndContent.getLayoutParams().width;
-					dragHolder.img.setBackground(primaryHolder.img.getBackground());
-					dragHolder.checkBox.setChecked(primaryHolder.checkBox.isChecked());
+					dragHolder.titleAndContent.setVisibility(primaryHolder.titleAndContent.getVisibility());
+
+					// Bitmap bm = mBitmapCache.get(path);
+					dragHolder.img.setBackground(primaryHolder.img.getDrawable());
+					dragHolder.img.setVisibility(primaryHolder.img.getVisibility());
+					dragHolder.checkBox.setChecked(true);
+					dragHolder.checkBox.setVisibility(View.VISIBLE);
 				}
 			});
 
@@ -1102,10 +1111,10 @@ public class RecentFragment extends BaseFragment implements OnScrollListener, Ca
 			convertView.setOnTouchListener(new OnTouchListener() {
 				@Override
 				public boolean onTouch(View v, MotionEvent event) {
-					if(event.getAction() == event.getAction()){
-						oldX = (int) event.getX();
-						oldY = (int) event.getY();
-//						Logg.D("onTouch ACTION_DOWN oldX " + oldX + " oldY " + oldY);
+					if (event.getAction() == MotionEvent.ACTION_DOWN) {
+						oldX = (int) event.getRawX();
+						oldY = (int) event.getRawY();
+						Logg.D("oldX " + oldX + " oldY " + oldY);
 					}
 					return false;
 				}
@@ -1151,7 +1160,8 @@ public class RecentFragment extends BaseFragment implements OnScrollListener, Ca
 			Bundle bundle = new Bundle();
 			bundle.putInt("index", pos);
 			gridPagerItem.setArguments(bundle);
-			gridPagerItem.setCallBack(RecentFragment.this);
+			//这里有概率性，callback nullpointer
+//			gridPagerItem.setCallBack(RecentFragment.this);
 			return gridPagerItem;
 		}
 
@@ -1186,14 +1196,16 @@ public class RecentFragment extends BaseFragment implements OnScrollListener, Ca
 			isDeleteUIShown = true;
 			AnimationHelper.runVerticalOutAnim(titlebar_batch_delete_imgbtn, 7, -200, 500);
 
-			AnimationHelper.runVerticalInAnim(bottom_layout, screenHeight, screenHeight - (getResources().getDimensionPixelSize(R.dimen.bottom_height)), 300);
+			AnimationHelper.runVerticalInAnim(BOTTOM_LAYOUT, screenHeight, screenHeight - (getResources().getDimensionPixelSize(R.dimen.bottom_height)), 300);
 
 			select_all_checkbox.setVisibility(View.VISIBLE);
 			select_all_checkbox.setChecked(false);
 			select_all_checkbox.setOnCheckedChangeListener(mNoteCheckBoxListener);
 
 			if (select_all_checkbox == null) {
-				throw new NullPointerException("View is null ! ");
+				Logg.E("select_all_checkbox null error");
+				select_all_checkbox = (CheckBox) rootView.findViewById(R.id.select_all_checkBox);
+				// throw new NullPointerException("View is null ! ");
 			}
 
 			AnimationHelper.runHorizontalInAnim(
@@ -1234,7 +1246,7 @@ public class RecentFragment extends BaseFragment implements OnScrollListener, Ca
 			AnimationHelper.runHorizontalOutAnim(select_all_checkbox, screenWidth
 					- (getResources().getDimensionPixelSize(R.dimen.checkbox_marginRight) + getResources().getDimensionPixelSize(R.dimen.checkbox_width)),
 					screenWidth, 500);
-			AnimationHelper.runVerticalOutAnim(bottom_layout, screenHeight - (getResources().getDimensionPixelSize(R.dimen.bottom_height)), screenHeight, 500);
+			AnimationHelper.runVerticalOutAnim(BOTTOM_LAYOUT, screenHeight - (getResources().getDimensionPixelSize(R.dimen.bottom_height)), screenHeight, 500);
 			titlebar_add_note_btn.setVisibility(View.VISIBLE);
 			AnimationHelper.runVerticalInAnim(titlebar_add_note_btn, -200, 7, 500);
 			titlebar_overflow_options.setVisibility(View.VISIBLE);
@@ -1309,20 +1321,6 @@ public class RecentFragment extends BaseFragment implements OnScrollListener, Ca
 		if (deleteList.size() == 0) {
 			Toast.makeText(mActivity, "没有选中任何记录", 1000).show();
 		} else {
-			// AlertDialog.Builder mDialog = new AlertDialog.Builder(mActivity);
-			// mDialog.setMessage(mActivity.getString(R.string.dialog_batch_delete));
-			// mDialog.setPositiveButton(mActivity.getString(R.string.dialog_yes),
-			// new DialogInterface.OnClickListener() {
-			// @Override
-			// public void onClick(DialogInterface dialog, int which) {
-			// // noteDBManager.batchDeleteRecord(deleteList);
-			// showExectingDialog();
-			// new BatchDeleteTask(deleteList).execute();
-			// }
-			// });
-			// mDialog.setNegativeButton(mActivity.getString(R.string.dialog_no),
-			// null);
-			// mDialog.show();
 			AlertDialogFactory.showAlertDialog(mActivity, rootView, mActivity.getString(R.string.dialog_batch_delete),
 					new AlertDialogFactory.DialogPositiveListner() {
 
@@ -1336,12 +1334,36 @@ public class RecentFragment extends BaseFragment implements OnScrollListener, Ca
 		}
 	}
 
+	Runnable showExectingDialog = new Runnable() {
+		@Override
+		public void run() {
+			if (rootView == null) {
+				Logg.E("rootView null error");
+			}
+			if (mActivity == null) {
+				Logg.E("mActivity null error");
+			}
+			ProgressDialogFactory.showProgressDialog(mActivity, rootView);
+		}
+	};
+
 	private void showExectingDialog() {
-		mExecutingDialog.show();
+
+		try {
+			handler.postDelayed(showExectingDialog, 500);
+		} catch (NullPointerException e) {
+			if (handler == null) {
+				Logg.E("handler null error");
+			}
+			if (showExectingDialog == null) {
+				Logg.E("showExectingDialog null error");
+			}
+		}
 	}
 
 	private void dissmissExecutingDialog() {
-		mExecutingDialog.dismiss();
+		handler.removeCallbacks(showExectingDialog);
+		ProgressDialogFactory.dismissProgressDialog();
 	}
 
 	private class BatchDeleteTask extends AsyncTask<Integer, Integer, String> {
@@ -1502,10 +1524,10 @@ public class RecentFragment extends BaseFragment implements OnScrollListener, Ca
 		// TODO Auto-generated method stub
 	}
 
-	@Override
-	public void showDeleteUI() {
-		this.showBatchDeleteUI();
-	}
+//	@Override
+//	public void showDeleteUI() {
+//		this.showBatchDeleteUI();
+//	}
 
 	// 自定义Scroller，用反射机制改变 Viewpager的滑动时间
 	public class ViewPagerScroller extends Scroller {
@@ -1534,6 +1556,10 @@ public class RecentFragment extends BaseFragment implements OnScrollListener, Ca
 	}
 
 	public void runDrawerAnim(float arg0) {
+		if (titlebar_overflow_options == null) {
+			Logg.E("titlebar_overflow_options null error");
+			initTitleBarView(rootView);
+		}
 		titlebar_overflow_options.setRotation(arg0);
 	}
 
@@ -1543,6 +1569,22 @@ public class RecentFragment extends BaseFragment implements OnScrollListener, Ca
 	@Override
 	public void onDetach() {
 		super.onDetach();
+	}
+
+	public static final String BATCH_DELETE = "com.mars.note.fragment.RecentFragment.batch_delete";
+
+	BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			if (intent.getAction().equals(BATCH_DELETE)) {
+				batchDeleteNote();
+			}
+		}
+	};
+
+	public int getTitleBarHeight() {
+		// TODO Auto-generated method stub
+		return titleBar.getHeight();
 	}
 
 }

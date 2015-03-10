@@ -17,6 +17,7 @@
         android:verticalSpacing="5dp"
         android:layout_alignParentTop="true"
         /> 
+<!--         android:layoutAnimation="@anim/list_layout_animation"   -->
 
     <TextView 
         android:layout_alignParentBottom="true"
